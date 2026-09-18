@@ -91,7 +91,6 @@ import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.WebUIActivity
 import me.bmax.apatch.ui.component.ConfirmResult
-import me.bmax.apatch.ui.component.DrawerIconButton
 import me.bmax.apatch.ui.component.ModuleRemoveButton
 import me.bmax.apatch.ui.component.ModuleStateIndicator
 import me.bmax.apatch.ui.component.ModuleUndoRemoveButton
@@ -163,7 +162,13 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
                 searchBarPlaceHolderText = stringResource(R.string.search_modules),
-                navigationContent = { DrawerIconButton() }
+                navigationContent = {
+                    Text(
+                        text = stringResource(R.string.apm),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             )
         },
         floatingActionButton = {

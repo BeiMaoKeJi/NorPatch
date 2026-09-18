@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import me.bmax.apatch.util.ui.Haptics
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 @Composable
 fun SwitchItem(
@@ -36,6 +38,7 @@ fun SwitchItem(
     enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
 
     Row(
@@ -48,7 +51,10 @@ fun SwitchItem(
                 role = Role.Switch,
                 enabled = enabled,
                 indication = LocalIndication.current,
-                onValueChange = onCheckedChange
+                onValueChange = { value ->
+                    Haptics.tick(haptics)
+                    onCheckedChange(value)
+                }
             )
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically

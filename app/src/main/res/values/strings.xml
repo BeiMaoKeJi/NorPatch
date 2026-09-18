@@ -3,6 +3,7 @@
     <string name="app_name" translatable="false">NorPatch</string>
 
     <string name="home">Home</string>
+    <string name="more">More</string>
 
     <string name="search">Search</string>
     <string name="search_apps">Search Apps</string>
@@ -54,8 +55,8 @@
     <string name="settings_check_update">Check for updates</string>
     <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
 
-    <string name="home_learn_apatch">Learn APatch</string>
-    <string name="home_click_to_learn_apatch">Learn about the features of APatch and how to use</string>
+    <string name="home_learn_apatch">Learn about NorPatch</string>
+    <string name="home_click_to_learn_apatch">Tap to learn NorPatch features</string>
 
     <string name="about_source_code"><![CDATA[<p>View source code at %1$s<p/>Join our %2$s channel<p/>Join our %3$s group]]></string>
     <string name="send_log">Send logs</string>
@@ -136,7 +137,7 @@
     <string name="home_system_version">System version</string>
     <string name="home_kpatch_version">KernelPatch version</string>
     <string name="home_su_path">Executable su</string>
-    <string name="home_apatch_version">APatch version</string>
+    <string name="home_apatch_version">NorPatch version</string>
 
     <string name="kpm">Kernel Modules</string>
     <string name="kpm_kp_not_installed">KernelPatch not installed</string>
@@ -297,8 +298,9 @@
     <string name="home_system_patch_unknown">Unknown</string>
 
     <string name="home_greeting_morning">Good morning</string>
+    <string name="home_greeting_noon">Good noon</string>
     <string name="home_greeting_afternoon">Good afternoon</string>
-    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_greeting_night">Good evening</string>
 
     <string name="home_bg_enabled">Background image</string>
     <string name="home_bg_enabled_summary">Use a custom image as the global background</string>
@@ -309,15 +311,132 @@
     <string name="home_bg_blur">Blur strength</string>
     <string name="home_title_label">Homepage title</string>
     <string name="home_title_summary">Custom title shown on the homepage</string>
+    <string name="home_subtitle_label">Greeting / description</string>
+    <string name="home_subtitle_summary">Shown below the fixed NorPatch title</string>
     <string name="home_appearance_reset">Reset to defaults</string>
     <string name="home_appearance_reset_confirm">Reset all homepage appearance settings to their defaults?</string>
     <string name="home_appearance_preview">Preview</string>
     <string name="norpatch_theme">NorPatch</string>
-    <string name="home_about_norpatch_title">NorPatch (nP)</string>
-    <string name="home_about_norpatch_desc">A UI beautification fork of APatch — only the front end was restyled, the core engine stays intact.</string>
+    <string name="close">Close</string>    <string name="home_about_norpatch_title">NorPatch (nP)</string>
+    <string name="home_about_norpatch_desc">Based on APatch with a full UI rework. Ships three UI sets: the in-house design, the original FolkPatch UI and the original APatch UI. Only the front end is replaced; the core engine remains the original APatch.</string>
     <string name="home_community_title">Join the community</string>
+    <string name="home_community_entry">Join community entry</string>
+    <string name="home_community_entry_summary">Show the Join community section on the More page</string>
     <string name="home_community_group">QQ group: 1072360977</string>
     <string name="home_community_hint">Tap to copy the group number, then search it in QQ to request to join.</string>
     <string name="home_community_copied">Group number copied. Open QQ and search 1072360977 to apply.</string>
+    <string name="home_community_copy_button">Copy group number</string>
     <string name="home_more_menu_community">Join community</string>
-</resources>
+
+    <!-- Homepage 4-block config (NorPatch) -->
+    <string name="home_content_group">Homepage content</string>
+    <string name="home_block_enabled">Show this block</string>
+    <string name="home_block_title">About NorPatch</string>
+    <string name="home_block_status">Status overview</string>
+    <string name="home_block_custom">Custom block</string>
+    <string name="home_block_device">Device info block</string>
+    <string name="home_block_settings">Settings block</string>
+    <string name="home_about_card_desc">Learn how to use NorPatch</string>
+    <string name="home_status_kp_big">Not installed</string>
+    <string name="home_status_kp_big_installed">Installed</string>
+    <string name="home_status_kp_big_unknown">KernelPatch unknown</string>
+    <string name="home_status_kp_desc">You may not have flashed Boot</string>
+    <string name="home_patch_kernel">KernelPatch</string>
+    <string name="home_patch_system">AndroidPatch</string>
+    <string name="home_state_installed">Installed</string>
+    <string name="home_state_not_installed">Not installed</string>
+    <string name="home_state_unknown">Unknown</string>
+    <string name="home_state_ready">Ready</string>
+    <string name="home_state_need_update">Update needed</string>
+    <string name="home_state_installing">Installing</string>
+    <string name="home_state_uninstalling">Uninstalling</string>
+    <string name="home_state_need_reboot">Reboot needed</string>
+    <string name="home_block_settings_visibility">Card visibility</string>
+    <string name="home_block_settings_style">Card style</string>
+    <string name="home_block_settings_style_summary">Changes apply instantly without affecting layout</string>
+    <string name="home_blocks_config">Block settings</string>
+    <string name="home_blocks_config_summary">Configure each block: visibility, background, transparency and blur</string>
+    <string name="home_block_bg_type">Background type</string>
+    <string name="home_block_bg_image">Image</string>
+    <string name="home_block_bg_solid">Solid color</string>
+    <string name="home_block_bg_pick">Choose background image</string>
+    <string name="home_block_bg_pick_summary">Pick an image for this block</string>
+    <string name="home_block_bg_remove">Remove background image</string>
+    <string name="home_block_bg_color">Background color</string>
+    <string name="home_window_drag">Drag to reorder</string>
+    <string name="home_window_settings">Card settings</string>
+    <string name="home_window_close">Close card</string>
+    <string name="home_block_alpha">Transparency</string>
+    <string name="home_block_corner">Corner radius</string>
+    <string name="home_block_border">Border</string>
+    <string name="home_block_shadow">Shadow</string>
+    <string name="home_block_shadow_strength">Shadow strength</string>
+    <string name="home_block_width">Card width</string>
+    <string name="home_block_spacing">Vertical spacing</string>
+    <string name="home_block_reset">Restore defaults</string>
+    <string name="home_block_reset_all">Reset card styles</string>
+    <string name="home_layout_profile">Layout profiles</string>
+    <string name="home_layout_default">Default layout</string>
+    <string name="home_layout_1">Layout 1</string>
+    <string name="home_layout_2">Layout 2</string>
+    <string name="layout_settings_title">Layout settings</string>
+    <string name="layout_settings_cards">Homepage cards</string>
+    <string name="layout_settings_reset">Reset whole layout</string>
+    <string name="layout_settings_reset_summary">Restore default card order and enable every card</string>
+    <string name="home_more_menu_layout">Layout settings</string>
+    <string name="drawer_section_features">Features</string>
+    <string name="home_custom_content_type">Display type</string>
+    <string name="home_custom_type_image">Image</string>
+    <string name="home_custom_type_uptime">Device uptime</string>
+    <string name="home_custom_type_custom_text">Custom text</string>
+    <string name="home_custom_type_basic_info">Basic device info</string>
+    <string name="home_custom_type_detail_params">Detailed device params</string>
+    <string name="home_custom_type_device_name">Device name</string>
+    <string name="home_custom_image_pick">Choose display image</string>
+    <string name="home_custom_image_pick_summary">Pick an image shown in the custom block</string>
+    <string name="home_custom_image_remove">Remove image</string>
+    <string name="home_custom_image_empty">No image selected\nSet one in Home Appearance → Custom block</string>
+    <string name="home_custom_uptime_label">Device running time</string>
+    <string name="home_custom_text_label">Custom text</string>
+    <string name="home_custom_text_empty">Tap below to write custom text</string>
+    <string name="home_uptime_days">d</string>
+    <string name="home_uptime_hours">h</string>
+    <string name="home_uptime_mins">min</string>
+    <string name="home_device_resolution">Resolution</string>
+    <string name="home_device_cpu">CPU</string>
+    <string name="home_device_ram">RAM</string>
+    <string name="home_device_storage">Storage</string>
+    <string name="settings_group_features">System features</string>
+    <string name="settings_group_general">General</string>
+    <string name="settings_home_layout_style">Home layout</string>
+    <string name="home_layout_ap">AP default layout</string>
+    <string name="home_layout_gridul">FolkPatch Gridu UI</string>
+    <string name="home_layout_norpatch">NorPatch CardLite UI</string>
+    <string name="home_kp_need_update">Update required</string>
+    <string name="home_kp_cando_update">Update</string>
+    <string name="home_device_status_title">Device status</string>
+    <string name="home_device_status_battery_temp">Battery temp</string>
+    <string name="home_device_status_cpu_load">CPU load</string>
+    <string name="home_device_status_battery_level">Battery</string>
+    <string name="home_storage_title">Storage</string>
+    <string name="home_storage_internal">Internal storage</string>
+    <string name="home_storage_ram">RAM</string>
+    <string name="home_info_copied">Copied</string>
+    <string name="battery_temp">电池温度</string>
+    <string name="cpu_load">CPU 负载</string>
+    <string name="battery_level">电量</string>
+    <string name="internal">内部存储</string>
+    <string name="ram">运行内存</string>
+    <string name="home_layout_dashboard">FolkPatch Dashboard UI</string>
+    <string name="home_bg_saved">Background saved</string>
+    <string name="home_bg_error">Failed to save background</string>
+    <string name="home_appearance_dim">Background dim</string>
+    <string name="home_appearance_opacity">Opacity</string>
+    <string name="home_appearance_grid_card">Gridu working card background</string>
+    <string name="home_appearance_dashboard_card">Dashboard hero card background</string>
+    <string name="home_appearance_card_bg_summary">Wallpaper inside this card</string>
+    <string name="home_appearance_grid_hide_check">Hide status icon</string>
+    <string name="home_appearance_grid_hide_text">Hide status text</string>
+    <string name="home_appearance_grid_hide_mode">Hide Full/Half mode</string>
+    <string name="home_about_card_show">Show this card on the home page</string>
+    <string name="home_card_opacity">卡片透明度</string></resources>

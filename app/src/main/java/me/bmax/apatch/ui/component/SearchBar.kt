@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -191,7 +192,7 @@ fun SearchAppBar(
             .windowInsetsPadding(
                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (onBackClick != null) {
@@ -225,7 +226,8 @@ fun SearchAppBar(
                 SearchBarDefaults.InputField(
                     modifier = Modifier
                         .focusRequester(focusRequester)
-                        .padding(bottom = 5.dp)
+                        .heightIn(min = 44.dp)
+                        .padding(bottom = 4.dp)
                         .clip(SearchBarDefaults.inputFieldShape),
                     searchBarState = searchBarState,
                     textFieldState = textFieldState,

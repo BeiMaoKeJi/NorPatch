@@ -1,14 +1,26 @@
 package me.bmax.apatch.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /**
  * NorPatch default theme — a soft Material Design 3 palette inspired by the
  * FolkPatch "二次元" beautified look: gentle rose/pastel tones, clean warm
  * whites in light mode, deep plum in dark mode. UI layer only.
  */
+
+/** NorPatch global shape system: uniformly large rounded corners everywhere. */
+val NorPatchShapes = Shapes(
+    extraSmall = RoundedCornerShape(14.dp),
+    small = RoundedCornerShape(18.dp),
+    medium = RoundedCornerShape(22.dp),
+    large = RoundedCornerShape(26.dp),
+    extraLarge = RoundedCornerShape(30.dp),
+)
 
 // ---------------- Light ----------------
 private val nor_light_primary = Color(0xFFD15B7E)

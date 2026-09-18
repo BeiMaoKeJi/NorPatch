@@ -53,8 +53,17 @@ val baseArgs = mutableListOf(
 android {
     namespace = "me.bmax.apatch"
 
+    signingConfigs {
+        create("norpatch") {
+            storeFile = file("D:\\NorPatch\\norpatch.jks")
+            storePassword = "norpatch"
+            keyAlias = "norpatch"
+            keyPassword = "norpatch"
+        }
+    }
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("norpatch")
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
@@ -108,7 +117,7 @@ android {
         // The source namespace stays me.bmax.apatch so the native JNI binding
         // (apjni.cpp), AIDL and app-zygote class names remain untouched —
         // per the UI-only constraint no C/C++/JNI code may be modified.
-        applicationId = "com.norpatch.manager"
+        applicationId = "com.bmkj.NorPatch"
         minSdk = androidMinSdkVersion
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
@@ -379,6 +388,7 @@ dependencies {
     implementation(libs.io.coil.kt.coil3.coil.compose)
 
     implementation(libs.kotlinx.coroutines.core)
+implementation(libs.liquid)
 
     implementation(libs.okhttp)
 

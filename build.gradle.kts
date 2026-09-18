@@ -49,7 +49,7 @@ fun getBranch(): String {
 }
 
 fun getVersionName(): String {
-    return getGitDescribe()
+    return "0.1.0"
 }
 
 tasks.register("printVersion") {

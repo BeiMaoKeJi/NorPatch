@@ -24,6 +24,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -40,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,7 +53,6 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import kotlinx.coroutines.launch
 import me.bmax.apatch.R
-import me.bmax.apatch.ui.component.DrawerIconButton
 import me.bmax.apatch.ui.component.ProvideMenuShape
 import me.bmax.apatch.ui.component.SearchAppBar
 import me.bmax.apatch.ui.component.SwitchItem
@@ -79,7 +81,13 @@ fun SuperUserScreen() {
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
                 searchBarPlaceHolderText = stringResource(R.string.search_apps),
-                navigationContent = { DrawerIconButton() },
+                navigationContent = {
+                    Text(
+                        text = stringResource(R.string.su_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                },
                 dropdownContent = {
                     var showDropdown by remember { mutableStateOf(false) }
 
@@ -150,6 +158,7 @@ private fun AppItem(
     val excluded = config.exclude == 1
 
     ListItem(
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable(onClick = {
             // Tapping the row only toggles the profile editor; granting or
             // revoking root goes through the Switch alone so a stray tap can

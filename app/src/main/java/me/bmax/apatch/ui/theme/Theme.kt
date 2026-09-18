@@ -1,5 +1,7 @@
 package me.bmax.apatch.ui.theme
 
+import me.bmax.apatch.ui.theme.BackgroundConfig
+
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -170,9 +172,32 @@ fun APatchTheme(
         darkMode = darkTheme
     )
 
+    // FolkPatch-style custom background: when enabled, the color scheme becomes
+    // translucent so the full-screen wallpaper shows through the cards.
+    val useCustomBackground = BackgroundConfig.isCustomBackgroundEnabled &&
+        !BackgroundConfig.customBackgroundUri.isNullOrEmpty()
+    val effectiveColorScheme = if (useCustomBackground) {
+        colorScheme.copy(
+            background = Color.Transparent,
+            surface = colorScheme.surface.copy(alpha = BackgroundConfig.customBackgroundOpacity),
+            secondaryContainer = colorScheme.secondaryContainer.copy(
+                alpha = BackgroundConfig.customBackgroundOpacity,
+            ),
+            surfaceContainer = colorScheme.surfaceContainer.copy(
+                alpha = BackgroundConfig.customBackgroundOpacity,
+            ),
+            surfaceContainerHigh = colorScheme.surfaceContainerHigh.copy(
+                alpha = BackgroundConfig.customBackgroundOpacity,
+            ),
+        )
+    } else {
+        colorScheme
+    }
+
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = effectiveColorScheme,
         typography = Typography,
+        shapes = NorPatchShapes,
         content = {
             MonetColorsProvider.UpdateCss()
             content()

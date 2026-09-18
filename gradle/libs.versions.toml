@@ -1,4 +1,5 @@
 [versions]
+liquid = "1.1.1"
 agp = "9.3.1"
 kotlin = "2.4.10"
 ksp = "2.3.11"
@@ -17,6 +18,7 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 [libraries]
+liquid = { group = "io.github.fletchmckee.liquid", name = "liquid-android", version.ref = "liquid" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version = "1.8.0" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.13.0" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.2.0" }

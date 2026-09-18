@@ -7,6 +7,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
@@ -14,9 +21,13 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +45,8 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
@@ -67,12 +80,13 @@ import com.ramcosta.composedestinations.rememberNavHostEngine
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import kotlinx.coroutines.launch
+import me.bmax.apatch.util.ui.glassDockEffect
 import me.bmax.apatch.APApplication
-import me.bmax.apatch.ui.component.DrawerController
 import me.bmax.apatch.ui.component.HomeBackgroundLayer
-import me.bmax.apatch.ui.component.LocalDrawerController
-import me.bmax.apatch.ui.component.NorDrawerContent
+import me.bmax.apatch.ui.navigation.BottomBar
 import me.bmax.apatch.ui.screen.BottomBarDestination
+import me.bmax.apatch.util.ui.navBarLiquefiable
+import me.bmax.apatch.util.ui.rememberNavBarGlassLiquidState
 import me.bmax.apatch.ui.theme.APatchTheme
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
 import me.bmax.apatch.util.ui.LocalSnackbarHost
@@ -109,88 +123,78 @@ class MainActivity : AppCompatActivity() {
                         !(destination.kPatchRequired && !kPatchReady) && !(destination.aPatchRequired && !aPatchReady)
                     }.toSet()
                 }
+                val navigator = navController.rememberDestinationsNavigator()
+                // Bottom Dock: Home | Kernel Modules | Superuser | System
+                // Modules | Settings. Superuser is hidden entirely when root is
+                // unavailable (no placeholder, no gray-out); the other four
+                // entries are always present.
+                val bottomNavDestinations = remember(state) {
+                    buildList {
+                        add(BottomBarDestination.Home)
+                        add(BottomBarDestination.KModule)
+                        if (kPatchReady && aPatchReady) {
+                            add(BottomBarDestination.SuperUser)
+                        }
+                        add(BottomBarDestination.AModule)
+                        add(BottomBarDestination.Settings)
+                    }
+                }
 
                 val defaultTransitions = object : NavHostAnimatedDestinationStyle() {
+                    // Unified smooth transitions: fade + gentle scale + a small
+                    // vertical drift for every page change 鈥?no slide jank.
                     override val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
                         {
-                            // If the target is a detail page (not a bottom navigation page), slide in from the right
-                            if (targetState.destination.route !in bottomBarRoutes) {
-                                slideInHorizontally(initialOffsetX = { it })
-                            } else {
-                                // Otherwise (switching between bottom navigation pages), use fade in
-                                fadeIn(animationSpec = tween(340))
-                            }
+                            fadeIn(animationSpec = tween(340)) +
+                                scaleIn(initialScale = 0.97f, animationSpec = tween(340)) +
+                                slideInVertically(tween(340)) { it / 24 }
                         }
 
                     override val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
                         {
-                            // If navigating from the home page (bottom navigation page) to a detail page, slide out to the left
-                            if (initialState.destination.route in bottomBarRoutes && targetState.destination.route !in bottomBarRoutes) {
-                                slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut()
-                            } else {
-                                // Otherwise (switching between bottom navigation pages), use fade out
-                                fadeOut(animationSpec = tween(340))
-                            }
+                            fadeOut(animationSpec = tween(300))
                         }
 
                     override val popEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
                         {
-                            // If returning to the home page (bottom navigation page), slide in from the left
-                            if (targetState.destination.route in bottomBarRoutes) {
-                                slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn()
-                            } else {
-                                // Otherwise (e.g., returning between multiple detail pages), use default fade in
-                                fadeIn(animationSpec = tween(340))
-                            }
+                            fadeIn(animationSpec = tween(340)) +
+                                scaleIn(initialScale = 0.97f, animationSpec = tween(340))
                         }
 
                     override val popExitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
                         {
-                            // If returning from a detail page (not a bottom navigation page), scale down and fade out
-                            if (initialState.destination.route !in bottomBarRoutes) {
-                                scaleOut(targetScale = 0.9f) + fadeOut()
-                            } else {
-                                // Otherwise, use default fade out
-                                fadeOut(animationSpec = tween(340))
-                            }
+                            fadeOut(animationSpec = tween(300)) +
+                                scaleOut(targetScale = 0.97f, animationSpec = tween(300)) +
+                                slideOutVertically(tween(300)) { -it / 24 }
                         }
                 }
 
-                LaunchedEffect(Unit) {
+                // FolkPatch-style frosted dock: real-time backdrop blur via liquid.
+                val floatingLiquidState = rememberNavBarGlassLiquidState()
+                // FP-style dock auto-hide: scroll down collapses the dock, scroll up brings it back.
+                var dockVisible by remember { mutableStateOf(true) }
+                val dockScrollConnection = remember {
+                    object : NestedScrollConnection {
+                        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                            dockVisible = available.y >= -1f
+                            return Offset.Zero
+                        }
+                    }
+                }
+
+                                LaunchedEffect(Unit) {
                     if (SuperUserViewModel.apps.isEmpty()) {
                         SuperUserViewModel().fetchAppList()
                     }
                 }
 
-                // NorPatch left navigation drawer
-                val drawerState = rememberDrawerState(DrawerValue.Closed)
-                val scope = rememberCoroutineScope()
-                val drawerController = remember {
-                    DrawerController(
-                        open = { scope.launch { drawerState.open() } },
-                        close = { scope.launch { drawerState.close() } },
-                    )
-                }
-
                 CompositionLocalProvider(
-                    LocalDrawerController provides drawerController,
                     LocalSnackbarHost provides snackBarHostState,
                 ) {
-                    ModalNavigationDrawer(
-                        drawerState = drawerState,
-                        gesturesEnabled = drawerState.isOpen,
-                        drawerContent = {
-                            NorDrawerContent(
-                                navController = navController,
-                                visibleDestinations = visibleDestinations,
-                                onClose = { scope.launch { drawerState.close() } },
-                            )
-                        },
-                    ) {
-                        HomeBackgroundLayer {
-                            Scaffold(
-                                containerColor = Color.Transparent,
-                                contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                    HomeBackgroundLayer {
+                        Scaffold(
+                            containerColor = Color.Transparent,
+                            contentWindowInsets = WindowInsets(0, 0, 0, 0),
                             ) { innerPadding ->
                                 if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                                     Row(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))) {
@@ -210,20 +214,34 @@ class MainActivity : AppCompatActivity() {
                                         )
                                     }
                                 } else {
-                                    DestinationsNavHost(
-                                        modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding),
-                                        navGraph = NavGraphs.root,
-                                        navController = navController,
-                                        engine = rememberNavHostEngine(navHostContentAlignment = Alignment.TopCenter),
-                                        defaultTransitions = defaultTransitions
-                                    )
+                                    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                                        DestinationsNavHost(
+                                            modifier = Modifier.fillMaxSize()
+                                                .nestedScroll(dockScrollConnection).navBarLiquefiable(floatingLiquidState)
+                                                .consumeWindowInsets(innerPadding),
+                                            navGraph = NavGraphs.root,
+                                            navController = navController,
+                                            engine = rememberNavHostEngine(navHostContentAlignment = Alignment.TopCenter),
+                                            defaultTransitions = defaultTransitions
+                                        )
+                                        AnimatedVisibility(
+                                            visible = dockVisible,
+                                            modifier = Modifier.align(Alignment.BottomCenter),
+                                            enter = slideInVertically(tween(260)) { it },
+                                            exit = slideOutVertically(tween(260)) { it },
+                                        ) {
+                                            BottomBar(
+                                                navController = navController,
+                                                isFloating = true,
+                                                liquidState = floatingLiquidState,
+                                            )
+                                        }
+                                    }
                                 }
-                            }
                         }
                     }
                 }
             }
-        }
 
         SingletonImageLoader.setSafe(
             SingletonImageLoader.Factory { context ->
@@ -288,4 +306,5 @@ private fun SideBar(navController: NavHostController, modifier: Modifier = Modif
             }
         }
     }
+}
 }

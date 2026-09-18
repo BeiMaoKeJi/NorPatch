@@ -4,74 +4,64 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.InvertColors
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Wallpaper
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
-import kotlinx.coroutines.Dispatchers
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
-import me.bmax.apatch.ui.component.DrawerIconButton
-import me.bmax.apatch.ui.component.GlassCard
-import me.bmax.apatch.ui.component.GlassShapes
-import me.bmax.apatch.ui.component.HomeBackgroundImage
+import me.bmax.apatch.ui.component.HomeBlock
 import me.bmax.apatch.ui.component.HomePrefs
+import me.bmax.apatch.ui.component.SectionCard
 import me.bmax.apatch.ui.component.SwitchItem
+import me.bmax.apatch.ui.theme.BackgroundConfig
+import me.bmax.apatch.ui.theme.BackgroundManager
 import me.bmax.apatch.util.ui.NavigationBarsSpacer
-import java.io.File
-import java.time.LocalTime
-import kotlin.math.roundToInt
 
 /** Shared greeting logic used by the homepage and the appearance preview. */
 internal fun greetingForHour(hour: Int, morning: String, afternoon: String, evening: String): String =
@@ -81,37 +71,69 @@ internal fun greetingForHour(hour: Int, morning: String, afternoon: String, even
         else -> evening
     }
 
+@StringRes
+internal fun HomeBlock.labelRes(): Int = when (this) {
+    HomeBlock.TITLE -> R.string.home_block_title
+    HomeBlock.STATUS -> R.string.home_block_status
+    HomeBlock.CUSTOM -> R.string.home_block_custom
+    HomeBlock.DEVICE -> R.string.home_block_device
+}
+
+internal fun homeBlockIcon(block: HomeBlock): ImageVector = when (block) {
+    HomeBlock.TITLE -> Icons.Filled.Title
+    HomeBlock.STATUS -> Icons.Filled.CheckCircle
+    HomeBlock.CUSTOM -> Icons.Filled.Image
+    HomeBlock.DEVICE -> Icons.Filled.PhoneAndroid
+}
+
+// ---------------------------------------------------------------------------
+// Home Appearance — FolkPatch-style full customization
+// ---------------------------------------------------------------------------
+
 @Destination<RootGraph>
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeAppearanceScreen() {
+fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
     HomePrefs.ensureInit()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val showResetDialog = remember { mutableStateOf(false) }
 
-    val pickImageLauncher = rememberLauncherForActivityResult(
+    fun toast(msg: String) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    // Custom background picker
+    val pickBackgroundLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            scope.launch(Dispatchers.IO) {
-                runCatching {
-                    val target = File(context.filesDir, "home_bg_${System.currentTimeMillis()}.jpg")
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        target.outputStream().use { output -> input.copyTo(output) }
-                    }
-                    withContext(Dispatchers.Main) {
-                        HomePrefs.setBackgroundImagePath(target.absolutePath)
-                    }
-                }.onFailure { e ->
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            "Failed to import image: ${e.message}",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                }
+            scope.launch {
+                val ok = BackgroundManager.saveAndApplyCustomBackground(context, uri)
+                toast(context.getString(if (ok) R.string.home_bg_saved else R.string.home_bg_error))
+            }
+        }
+    }
+
+    // Gridu working card wallpaper picker
+    val pickGridLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                val ok = BackgroundManager.saveAndApplyGridWorkingCardBackground(context, uri)
+                toast(context.getString(if (ok) R.string.home_bg_saved else R.string.home_bg_error))
+            }
+        }
+    }
+
+    // Dashboard hero card wallpaper picker
+    val pickDashboardLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                val ok = BackgroundManager.saveAndApplyDashboardCardBackground(context, uri)
+                toast(context.getString(if (ok) R.string.home_bg_saved else R.string.home_bg_error))
             }
         }
     }
@@ -121,7 +143,14 @@ fun HomeAppearanceScreen() {
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.home_appearance)) },
-                navigationIcon = { DrawerIconButton() },
+                navigationIcon = {
+                    IconButton(onClick = { navigator.navigateUp() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(android.R.string.cancel),
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             )
         },
@@ -131,132 +160,231 @@ fun HomeAppearanceScreen() {
                 .padding(paddingValues)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Spacer(Modifier.height(4.dp))
 
-            // ---- Live preview -------------------------------------------------
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    text = stringResource(R.string.home_appearance_preview),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // ---- Card visibility (hard requirement: these two switches) ----
+            SectionCard(title = stringResource(R.string.home_blocks_config)) {
+                SwitchItem(
+                    icon = Icons.Filled.CheckCircle,
+                    title = stringResource(R.string.home_about_norpatch_title),
+                    summary = stringResource(R.string.home_about_card_show),
+                    checked = HomePrefs.blockEnabled[HomeBlock.TITLE] ?: true,
+                    onCheckedChange = { HomePrefs.setBlockEnabled(HomeBlock.TITLE, it) },
                 )
-                Spacer(Modifier.height(8.dp))
-                Box(
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                SwitchItem(
+                    icon = Icons.Filled.Forum,
+                    title = stringResource(R.string.home_community_entry),
+                    summary = stringResource(R.string.home_community_entry_summary),
+                    checked = HomePrefs.communityEnabled,
+                    onCheckedChange = { HomePrefs.setCommunityEnabled(it) },
+                )
+            }
+
+            // ---- Global custom background -----------------------------------
+            SectionCard(title = stringResource(R.string.home_bg_enabled)) {
+                SwitchItem(
+                    icon = Icons.Filled.Wallpaper,
+                    title = stringResource(R.string.home_bg_enabled),
+                    summary = stringResource(R.string.home_bg_enabled_summary),
+                    checked = BackgroundConfig.isCustomBackgroundEnabled,
+                    onCheckedChange = {
+                        BackgroundConfig.setCustomBackgroundEnabledState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                ListItem(
+                    leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
+                    headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
+                    supportingContent = { Text(stringResource(R.string.home_bg_pick_summary)) },
+                    trailingContent = {
+                        Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(GlassShapes.Card),
-                ) {
-                    HomeBackgroundImage(Modifier.fillMaxSize())
-                    GlassCard(
-                        modifier = Modifier.fillMaxSize(),
-                        fillAlpha = 0.78f,
-                        contentPadding = PaddingValues(18.dp),
-                    ) {
-                        val hour = LocalTime.now().hour
-                        Text(
-                            text = greetingForHour(
-                                hour,
-                                stringResource(R.string.home_greeting_morning),
-                                stringResource(R.string.home_greeting_afternoon),
-                                stringResource(R.string.home_greeting_evening),
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = HomePrefs.homeTitle.ifBlank { HomePrefs.DEFAULT_TITLE },
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(Modifier.height(14.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PreviewChip(stringResource(R.string.home_system_modules))
-                            PreviewChip(stringResource(R.string.home_kernel_modules))
-                        }
-                    }
-                }
-            }
-
-            // ---- Background group --------------------------------------------
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                GlassCard(fillAlpha = 0.80f) {
-                    SwitchItem(
-                        icon = Icons.Filled.Wallpaper,
-                        title = stringResource(R.string.home_bg_enabled),
-                        summary = stringResource(R.string.home_bg_enabled_summary),
-                        checked = HomePrefs.bgEnabled,
-                        onCheckedChange = { HomePrefs.setBackgroundEnabled(it) },
-                    )
-
+                        .clickable { pickBackgroundLauncher.launch("image/*") },
+                )
+                if (BackgroundConfig.customBackgroundUri != null) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     ListItem(
-                        leadingContent = { Icon(Icons.Filled.Image, null) },
-                        headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
-                        supportingContent = { Text(stringResource(R.string.home_bg_pick_summary)) },
+                        leadingContent = { Icon(Icons.Filled.Delete, null) },
+                        headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { pickImageLauncher.launch("image/*") },
-                    )
-
-                    if (HomePrefs.backgroundFile() != null) {
-                        ListItem(
-                            leadingContent = { Icon(Icons.Filled.Delete, null) },
-                            headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { HomePrefs.setBackgroundImagePath("") },
-                        )
-                    }
-
-                    AppearanceSliderItem(
-                        title = stringResource(R.string.home_bg_alpha),
-                        value = HomePrefs.bgAlpha,
-                        onValueChange = { HomePrefs.setAlpha(it) },
-                    )
-                    AppearanceSliderItem(
-                        title = stringResource(R.string.home_bg_blur),
-                        value = HomePrefs.bgBlur,
-                        onValueChange = { HomePrefs.setBlur(it) },
+                            .clickable { BackgroundManager.clearCustomBackground(context) },
                     )
                 }
+                FpSliderItem(
+                    title = stringResource(R.string.home_bg_alpha),
+                    value = BackgroundConfig.customBackgroundOpacity,
+                    onValueChange = {
+                        BackgroundConfig.setCustomBackgroundOpacityValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                FpSliderItem(
+                    title = stringResource(R.string.home_card_opacity),
+                    value = BackgroundConfig.cardOpacity,
+                    onValueChange = { BackgroundConfig.setCardOpacityValue(it) },
+                )
+                FpSliderItem(
+                    title = stringResource(R.string.home_bg_blur),
+                    value = BackgroundConfig.customBackgroundBlur,
+                    onValueChange = {
+                        BackgroundConfig.setCustomBackgroundBlurValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                FpSliderItem(
+                    title = stringResource(R.string.home_appearance_dim),
+                    value = BackgroundConfig.customBackgroundDim,
+                    onValueChange = {
+                        BackgroundConfig.setCustomBackgroundDimValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
             }
 
-            // ---- Homepage title ----------------------------------------------
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                GlassCard(fillAlpha = 0.80f) {
-                    Text(
-                        text = stringResource(R.string.home_title_label),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = HomePrefs.homeTitle,
-                        onValueChange = { HomePrefs.setTitle(it) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = stringResource(R.string.home_title_summary),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // ---- Gridu working card wallpaper --------------------------------
+            SectionCard(title = stringResource(R.string.home_appearance_grid_card)) {
+                SwitchItem(
+                    icon = Icons.Filled.Wallpaper,
+                    title = stringResource(R.string.home_appearance_grid_card),
+                    summary = stringResource(R.string.home_appearance_card_bg_summary),
+                    checked = BackgroundConfig.isGridWorkingCardBackgroundEnabled,
+                    onCheckedChange = {
+                        BackgroundConfig.setGridWorkingCardBackgroundEnabledState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                ListItem(
+                    leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
+                    headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { pickGridLauncher.launch("image/*") },
+                )
+                if (BackgroundConfig.gridWorkingCardBackgroundUri != null) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    ListItem(
+                        leadingContent = { Icon(Icons.Filled.Delete, null) },
+                        headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { BackgroundManager.clearGridWorkingCardBackground(context) },
                     )
                 }
+                FpSliderItem(
+                    title = stringResource(R.string.home_appearance_opacity),
+                    value = BackgroundConfig.gridWorkingCardBackgroundOpacity,
+                    onValueChange = {
+                        BackgroundConfig.setGridWorkingCardBackgroundOpacityValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                FpSliderItem(
+                    title = stringResource(R.string.home_appearance_dim),
+                    value = BackgroundConfig.gridWorkingCardBackgroundDim,
+                    onValueChange = {
+                        BackgroundConfig.setGridWorkingCardBackgroundDimValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                SwitchItem(
+                    icon = Icons.Filled.InvertColors,
+                    title = stringResource(R.string.home_appearance_grid_hide_check),
+                    checked = BackgroundConfig.isGridWorkingCardCheckHidden,
+                    onCheckedChange = {
+                        BackgroundConfig.setGridWorkingCardCheckHiddenState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                SwitchItem(
+                    icon = Icons.Filled.Title,
+                    title = stringResource(R.string.home_appearance_grid_hide_text),
+                    checked = BackgroundConfig.isGridWorkingCardTextHidden,
+                    onCheckedChange = {
+                        BackgroundConfig.setGridWorkingCardTextHiddenState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                SwitchItem(
+                    icon = Icons.Filled.Title,
+                    title = stringResource(R.string.home_appearance_grid_hide_mode),
+                    checked = BackgroundConfig.isGridWorkingCardModeHidden,
+                    onCheckedChange = {
+                        BackgroundConfig.setGridWorkingCardModeHiddenState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
             }
 
-            // ---- Reset --------------------------------------------------------
+            // ---- Dashboard hero card wallpaper -------------------------------
+            SectionCard(title = stringResource(R.string.home_appearance_dashboard_card)) {
+                SwitchItem(
+                    icon = Icons.Filled.Wallpaper,
+                    title = stringResource(R.string.home_appearance_dashboard_card),
+                    summary = stringResource(R.string.home_appearance_card_bg_summary),
+                    checked = BackgroundConfig.isDashboardCardBackgroundEnabled,
+                    onCheckedChange = {
+                        BackgroundConfig.setDashboardCardBackgroundEnabledState(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                ListItem(
+                    leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
+                    headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { pickDashboardLauncher.launch("image/*") },
+                )
+                if (BackgroundConfig.dashboardCardBgUri != null) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    ListItem(
+                        leadingContent = { Icon(Icons.Filled.Delete, null) },
+                        headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { BackgroundManager.clearDashboardCardBackground(context) },
+                    )
+                }
+                FpSliderItem(
+                    title = stringResource(R.string.home_appearance_opacity),
+                    value = BackgroundConfig.dashboardCardBgOpacity,
+                    onValueChange = {
+                        BackgroundConfig.setDashboardCardBgOpacityValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+                FpSliderItem(
+                    title = stringResource(R.string.home_appearance_dim),
+                    value = BackgroundConfig.dashboardCardBgDim,
+                    onValueChange = {
+                        BackgroundConfig.setDashboardCardBgDimValue(it)
+                        BackgroundConfig.save(context)
+                    },
+                )
+            }
+
+            // ---- Reset all appearance ---------------------------------------
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Button(
-                    onClick = { showResetDialog.value = true },
+                    onClick = {
+                        BackgroundConfig.reset()
+                        BackgroundConfig.save(context)
+                        toast(context.getString(R.string.home_appearance_reset))
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                     ),
-                    shape = GlassShapes.Small,
                 ) {
                     Icon(Icons.Filled.RestartAlt, null)
                     Spacer(Modifier.width(8.dp))
@@ -265,42 +393,23 @@ fun HomeAppearanceScreen() {
             }
 
             NavigationBarsSpacer()
+            Spacer(Modifier.height(16.dp))
         }
     }
-
-    if (showResetDialog.value) {
-        ResetAppearanceDialog(showDialog = showResetDialog, onConfirm = { HomePrefs.reset() })
-    }
 }
 
+/** Slider row for FolkPatch-style 0f..1f float values. */
 @Composable
-private fun PreviewChip(label: String) {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color.White.copy(alpha = if (isDark) 0.14f else 0.55f))
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun AppearanceSliderItem(title: String, value: Int, onValueChange: (Int) -> Unit) {
+private fun FpSliderItem(title: String, value: Float, onValueChange: (Float) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 4.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 10.dp, bottom = 4.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             Text(
                 text = title,
@@ -308,59 +417,16 @@ private fun AppearanceSliderItem(title: String, value: Int, onValueChange: (Int)
                 modifier = Modifier.weight(1f),
             )
             Text(
-                text = "$value%",
+                text = "${(value * 100).toInt()}%",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Slider(
-            value = value.toFloat(),
-            onValueChange = { onValueChange(it.roundToInt()) },
-            valueRange = 0f..100f,
+            value = value.coerceIn(0f, 1f),
+            onValueChange = onValueChange,
+            valueRange = 0f..1f,
         )
     }
 }
 
-@Composable
-private fun ResetAppearanceDialog(
-    showDialog: MutableState<Boolean>,
-    onConfirm: () -> Unit,
-) {
-    BasicAlertDialog(onDismissRequest = { showDialog.value = false }) {
-        Surface(
-            modifier = Modifier.width(310.dp),
-            shape = RoundedCornerShape(30.dp),
-            tonalElevation = AlertDialogDefaults.TonalElevation,
-            color = AlertDialogDefaults.containerColor,
-        ) {
-            Column(Modifier.padding(24.dp)) {
-                Text(
-                    text = stringResource(R.string.home_appearance_reset),
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = stringResource(R.string.home_appearance_reset_confirm),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = { showDialog.value = false }) {
-                        Text(stringResource(android.R.string.cancel))
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = {
-                        showDialog.value = false
-                        onConfirm()
-                    }) {
-                        Text(stringResource(android.R.string.ok))
-                    }
-                }
-            }
-        }
-    }
-}

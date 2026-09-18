@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -27,15 +29,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Commit
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.Engineering
 import androidx.compose.material.icons.automirrored.filled.FeaturedPlayList
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.FormatColorFill
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.InvertColors
+
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
@@ -83,9 +90,17 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material3.RadioButton
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.APModuleScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.GeneralScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.HomeAppearanceScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.KPModuleScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.SuperUserScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.SystemFeaturesScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -95,7 +110,7 @@ import me.bmax.apatch.BuildConfig
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.SwitchItem
-import me.bmax.apatch.ui.component.DrawerIconButton
+import me.bmax.apatch.ui.component.SectionCard
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.util.getBugreportFile
@@ -116,462 +131,85 @@ import java.util.Locale
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SettingScreen(navigator: DestinationsNavigator) {
-    val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
-    val kPatchReady = state != APApplication.State.UNKNOWN_STATE
-    val aPatchReady =
-        (state == APApplication.State.ANDROIDPATCH_INSTALLING || state == APApplication.State.ANDROIDPATCH_INSTALLED || state == APApplication.State.ANDROIDPATCH_NEED_UPDATE)
-    var isGlobalNamespaceEnabled by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var namespaceLoaded by remember { mutableStateOf(false) }
-    // The check shells out as root; run it once off the main thread instead of
-    // synchronously in composition on every recomposition. The switch stays
-    // disabled until the real value lands so a fast tap can't act on the
-    // placeholder and get overwritten by the late result.
-    LaunchedEffect(kPatchReady && aPatchReady) {
-        if (kPatchReady && aPatchReady) {
-            isGlobalNamespaceEnabled = withContext(Dispatchers.IO) { isGlobalNamespaceEnabled() }
-            namespaceLoaded = true
-        }
-    }
-
-    val snackBarHost = LocalSnackbarHost.current
-
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings)) },
-                navigationIcon = { DrawerIconButton() },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             )
         },
-        snackbarHost = { SnackbarHost(snackBarHost) }
     ) { paddingValues ->
-
-        val loadingDialog = rememberLoadingDialog()
-
-        val showLanguageDialog = rememberSaveable { mutableStateOf(false) }
-        LanguageDialog(showLanguageDialog)
-
-        val showResetSuPathDialog = remember { mutableStateOf(false) }
-        if (showResetSuPathDialog.value) {
-            ResetSUPathDialog(showResetSuPathDialog)
-        }
-
-        val showThemeChooseDialog = remember { mutableStateOf(false) }
-        if (showThemeChooseDialog.value) {
-            ThemeChooseDialog(showThemeChooseDialog)
-        }
-
-        var showLogBottomSheet by remember { mutableStateOf(false) }
-        val saveLog = stringResource(R.string.save_log)
-
-        val scope = rememberCoroutineScope()
-        val context = LocalContext.current
-        val logSavedMessage = stringResource(R.string.log_saved)
-        val exportBugreportLauncher = rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument("application/gzip")
-        ) { uri: Uri? ->
-            if (uri != null) {
-                scope.launch(Dispatchers.IO) {
-                    loadingDialog.show()
-                    uri.outputStream().use { output ->
-                        getBugreportFile(context).inputStream().use {
-                            it.copyTo(output)
-                        }
-                    }
-                    loadingDialog.hide()
-                    snackBarHost.showSnackbar(message = logSavedMessage)
-                }
-            }
-        }
-
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
         ) {
-
-            val context = LocalContext.current
-            val scope = rememberCoroutineScope()
-            val prefs = APApplication.sharedPreferences
-
-            // Global mount
-            if (kPatchReady && aPatchReady) {
-                SwitchItem(
-                    icon = Icons.Filled.Engineering,
-                    title = stringResource(id = R.string.settings_global_namespace_mode),
-                    summary = stringResource(id = R.string.settings_global_namespace_mode_summary),
-                    checked = isGlobalNamespaceEnabled,
-                    enabled = namespaceLoaded,
-                    onCheckedChange = {
-                        setGlobalNamespaceEnabled(
-                            if (isGlobalNamespaceEnabled) {
-                                "0"
-                            } else {
-                                "1"
-                            }
-                        )
-                        isGlobalNamespaceEnabled = it
-                    })
-            }
-
-            // Legacy sucompat (path_probe) support
-            if (kPatchReady && aPatchReady) {
-                var sucompatEnabled by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("sucompat_enabled", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.AutoMirrored.Filled.FeaturedPlayList,
-                    title = stringResource(id = R.string.settings_sucompat),
-                    summary = stringResource(id = R.string.settings_sucompat_summary),
-                    checked = sucompatEnabled,
-                    onCheckedChange = { enabled ->
-                        scope.launch(Dispatchers.IO) {
-                            val result = if (enabled) {
-                                // Enable: create marker file and register hooks via supercall
-                                rootShellForResult("touch ${APApplication.SUCOMPAT_FILE}")
-                                Natives.controlFeature("sucompat_extra", true)
-                            } else {
-                                // Disable: remove marker file and unregister hooks via supercall
-                                rootShellForResult("rm -f ${APApplication.SUCOMPAT_FILE}")
-                                Natives.controlFeature("sucompat_extra", false)
-                            }
-                            Log.d("SucompatToggle", "sucompat_extra ${if (enabled) "enable" else "disable"} result: $result")
-                            if (result == 0L) {
-                                prefs.edit { putBoolean("sucompat_enabled", enabled) }
-                                sucompatEnabled = enabled
-                            }
-                        }
-                    })
-            }
-
-            // Hide SELinux modification (test)
-            if (kPatchReady && aPatchReady) {
-                val kernelVersion = remember { getKernelVersionCode() }
-                val kernelSupported = (kernelVersion ?: 0) >= 419
-                val isGki = remember { isGkiKernel() }
-                var selinuxHideEnabled by rememberSaveable {
-                    mutableStateOf(prefs.getBoolean("selinux_hide_enabled", false))
-                }
-                val showSelinuxHideWarning = remember { mutableStateOf(false) }
-
-                fun applySelinuxHide(enabled: Boolean) {
-                    scope.launch(Dispatchers.IO) {
-                        val command = if (enabled) {
-                            "touch ${APApplication.SELINUX_HIDE_FILE}"
-                        } else {
-                            "rm -f ${APApplication.SELINUX_HIDE_FILE}"
-                        }
-                        val result = rootShellForResult(command)
-                        Log.d("SelinuxHideToggle", "$command result: ${result.code}")
-                        if (result.isSuccess) {
-                            prefs.edit { putBoolean("selinux_hide_enabled", enabled) }
-                            selinuxHideEnabled = enabled
-                        }
-                    }
-                }
-
-                SwitchItem(
-                    icon = Icons.Filled.Security,
-                    title = stringResource(id = R.string.settings_selinux_hide),
-                    summary = stringResource(id = R.string.settings_selinux_hide_summary),
-                    checked = selinuxHideEnabled,
-                    enabled = kernelSupported,
-                    onCheckedChange = { enabled ->
-                        if (enabled) {
-                            // Only tested on 5.10+, and non-GKI carries a bigger risk, so warn first.
-                            val below510 = (kernelVersion ?: 0) < 510
-                            if (below510 || !isGki) {
-                                showSelinuxHideWarning.value = true
-                            } else {
-                                applySelinuxHide(true)
-                            }
-                        } else {
-                            applySelinuxHide(false)
-                        }
-                    }
-                )
-
-                if (showSelinuxHideWarning.value) {
-                    SelinuxHideWarningDialog(
-                        showDialog = showSelinuxHideWarning,
-                        kernelVersion = kernelVersion,
-                        isGki = isGki,
-                        onConfirm = { applySelinuxHide(true) },
-                    )
-                }
-            }
-
-            // WebView Debug
-            if (aPatchReady) {
-                var enableWebDebugging by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("enable_web_debugging", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.DeveloperMode,
-                    title = stringResource(id = R.string.enable_web_debugging),
-                    summary = stringResource(id = R.string.enable_web_debugging_summary),
-                    checked = enableWebDebugging
-                ) {
-                    APApplication.sharedPreferences.edit {
-                        putBoolean("enable_web_debugging", it)
-                    }
-                    enableWebDebugging = it
-                }
-            }
-
-            // Check Update
-            var checkUpdate by rememberSaveable {
-                mutableStateOf(
-                    prefs.getBoolean("check_update", true)
-                )
-            }
-
-            SwitchItem(
-                icon = Icons.Filled.Update,
-                title = stringResource(id = R.string.settings_check_update),
-                summary = stringResource(id = R.string.settings_check_update_summary),
-                checked = checkUpdate
-            ) {
-                prefs.edit { putBoolean("check_update", it) }
-                checkUpdate = it
-            }
-
-            // Night Mode Follow System
-            var nightFollowSystem by rememberSaveable {
-                mutableStateOf(
-                    prefs.getBoolean("night_mode_follow_sys", true)
-                )
-            }
-            SwitchItem(
-                icon = Icons.Filled.InvertColors,
-                title = stringResource(id = R.string.settings_night_mode_follow_sys),
-                summary = stringResource(id = R.string.settings_night_mode_follow_sys_summary),
-                checked = nightFollowSystem
-            ) {
-                prefs.edit { putBoolean("night_mode_follow_sys", it) }
-                nightFollowSystem = it
-                refreshTheme.value = true
-            }
-
-            // Custom Night Theme Switch
-            if (!nightFollowSystem) {
-                var nightThemeEnabled by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("night_mode_enabled", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.DarkMode,
-                    title = stringResource(id = R.string.settings_night_theme_enabled),
-                    checked = nightThemeEnabled
-                ) {
-                    prefs.edit { putBoolean("night_mode_enabled", it) }
-                    nightThemeEnabled = it
-                    refreshTheme.value = true
-                }
-            }
-
-            // System dynamic color theme
-            val isDynamicColorSupport = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            if (isDynamicColorSupport) {
-                var useSystemDynamicColor by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("use_system_color_theme", true)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.ColorLens,
-                    title = stringResource(id = R.string.settings_use_system_color_theme),
-                    summary = stringResource(id = R.string.settings_use_system_color_theme_summary),
-                    checked = useSystemDynamicColor
-                ) {
-                    prefs.edit { putBoolean("use_system_color_theme", it) }
-                    useSystemDynamicColor = it
-                    refreshTheme.value = true
-                }
-
-                if (!useSystemDynamicColor) {
-                    ListItem(headlineContent = {
-                        Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                    }, modifier = Modifier.clickable {
-                        showThemeChooseDialog.value = true
-                    }, supportingContent = {
-                        val colorMode = prefs.getString("custom_color", "norpatch")
-                        Text(
-                            text = stringResource(colorNameToString(colorMode.toString())),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-
-                }
-            } else {
-                ListItem(headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                }, modifier = Modifier.clickable {
-                    showThemeChooseDialog.value = true
-                }, supportingContent = {
-                    val colorMode = prefs.getString("custom_color", "norpatch")
-                    Text(
-                        text = stringResource(colorNameToString(colorMode.toString())),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-            }
-
-            // NorPatch: Home Appearance entry
-            ListItem(
-                leadingContent = { Icon(Icons.Filled.Wallpaper, null) },
-                headlineContent = { Text(stringResource(id = R.string.home_appearance)) },
-                supportingContent = { Text(stringResource(id = R.string.home_appearance_summary)) },
-                modifier = Modifier.clickable {
-                    navigator.navigate(HomeAppearanceScreenDestination)
-                })
-
-            // su path
-            if (kPatchReady) {
+            Spacer(Modifier.height(4.dp))
+            val showHomeLayoutDialog = remember { mutableStateOf(false) }
+            SectionCard(stringResource(R.string.settings)) {
                 ListItem(
                     leadingContent = {
+                        Icon(Icons.Filled.GridView, null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    headlineContent = { Text(stringResource(R.string.settings_home_layout_style)) },
+                    supportingContent = {
+                        Text(homeLayoutDisplayName(), style = MaterialTheme.typography.bodySmall)
+                    },
+                    trailingContent = {
                         Icon(
-                            Icons.Filled.Commit, stringResource(id = R.string.setting_reset_su_path)
+                            Icons.Filled.ChevronRight,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
-                    supportingContent = {},
-                    headlineContent = { Text(stringResource(id = R.string.setting_reset_su_path)) },
-                    modifier = Modifier.clickable {
-                        showResetSuPathDialog.value = true
-                    })
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showHomeLayoutDialog.value = true },
+                )
+                androidx.compose.material3.HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                )
+                ListItem(
+                    leadingContent = {
+                        Icon(Icons.Filled.Engineering, null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    headlineContent = { Text(stringResource(R.string.settings_group_features)) },
+                    trailingContent = {
+                        Icon(
+                            Icons.Filled.ChevronRight,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navigator.navigate(SystemFeaturesScreenDestination) },
+                )
+                androidx.compose.material3.HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                )
+                ListItem(
+                    leadingContent = {
+                        Icon(Icons.Filled.InvertColors, null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    headlineContent = { Text(stringResource(R.string.settings_group_general)) },
+                    trailingContent = {
+                        Icon(
+                            Icons.Filled.ChevronRight,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navigator.navigate(GeneralScreenDestination) },
+                )
             }
-
-            // language
-            ListItem(headlineContent = {
-                Text(text = stringResource(id = R.string.settings_app_language))
-            }, modifier = Modifier.clickable {
-                showLanguageDialog.value = true
-            }, supportingContent = {
-                Text(text = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                } ?: stringResource(id = R.string.system_default),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline)
-            }, leadingContent = { Icon(Icons.Filled.Translate, null) })
-
-            // log
-            ListItem(
-                leadingContent = {
-                    Icon(
-                        Icons.Filled.BugReport, stringResource(id = R.string.send_log)
-                    )
-                },
-                headlineContent = { Text(stringResource(id = R.string.send_log)) },
-                modifier = Modifier.clickable {
-                    showLogBottomSheet = true
-                })
-            if (showLogBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showLogBottomSheet = false },
-                    contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-                    content = {
-                        Row(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .align(Alignment.CenterHorizontally)
-
-                        ) {
-                            Box {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .clickable {
-                                            scope.launch {
-                                                val formatter =
-                                                    DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
-                                                val current = LocalDateTime.now().format(formatter)
-                                                exportBugreportLauncher.launch("APatch_bugreport_${current}.tar.gz")
-                                                showLogBottomSheet = false
-                                            }
-                                        }
-                                ) {
-                                    Icon(
-                                        Icons.Filled.Save,
-                                        contentDescription = null,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                    Text(
-                                        text = stringResource(id = R.string.save_log),
-                                        modifier = Modifier.padding(top = 16.dp),
-                                        textAlign = TextAlign.Center
-
-                                    )
-                                }
-
-                            }
-                            Box {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .clickable {
-                                            scope.launch {
-                                                val bugreport = loadingDialog.withLoading {
-                                                    withContext(Dispatchers.IO) {
-                                                        getBugreportFile(context)
-                                                    }
-                                                }
-
-                                                val uri: Uri = FileProvider.getUriForFile(
-                                                    context,
-                                                    "${BuildConfig.APPLICATION_ID}.fileprovider",
-                                                    bugreport
-                                                )
-
-                                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                                    setDataAndType(uri, "application/gzip")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                }
-
-                                                context.startActivity(
-                                                    Intent.createChooser(
-                                                        shareIntent,
-                                                        saveLog
-                                                    )
-                                                )
-                                                showLogBottomSheet = false
-                                            }
-                                        }) {
-                                    Icon(
-                                        Icons.Filled.Share,
-                                        contentDescription = null,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                    Text(
-                                        text = stringResource(id = R.string.send_log),
-                                        modifier = Modifier.padding(top = 16.dp),
-                                        textAlign = TextAlign.Center
-
-                                    )
-                                }
-
-                            }
-                        }
-                        NavigationBarsSpacer()
-                    })
-            }
-
-
+            NavigationBarsSpacer()
+            HomeLayoutChooseDialog(showHomeLayoutDialog)
         }
-
     }
 }
 
@@ -614,11 +252,11 @@ fun ThemeChooseDialog(showDialog: MutableState<Boolean>) {
 
 }
 
-private data class APColor(
+internal data class APColor(
     val name: String, @param:StringRes val nameId: Int
 )
 
-private fun colorsList(): List<APColor> {
+internal fun colorsList(): List<APColor> {
     return listOf(
         APColor("amber", R.string.amber_theme),
         APColor("blue_grey", R.string.blue_grey_theme),
@@ -644,7 +282,7 @@ private fun colorsList(): List<APColor> {
 }
 
 @Composable
-private fun colorNameToString(colorName: String): Int {
+internal fun colorNameToString(colorName: String): Int {
     return colorsList().find { it.name == colorName }?.nameId ?: R.string.norpatch_theme
 }
 
@@ -848,6 +486,71 @@ fun LanguageDialog(showLanguageDialog: MutableState<Boolean>) {
             }
             val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
             APDialogBlurBehindUtils.setupWindowBlurListener(dialogWindowProvider.window)
+        }
+    }
+}
+
+@Composable
+private fun homeLayoutDisplayName(): String {
+    val key = APApplication.sharedPreferences.getString("home_layout_style", "norpatch")
+    return when (key) {
+        "dashboard_ui" -> stringResource(R.string.home_layout_gridul)
+        "dashboard_ui" -> stringResource(R.string.home_layout_gridul)
+        else -> stringResource(R.string.home_layout_norpatch)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeLayoutChooseDialog(showDialog: MutableState<Boolean>) {
+    if (!showDialog.value) return
+    val prefs = APApplication.sharedPreferences
+    val current = prefs.getString("home_layout_style", "norpatch")
+    val options = listOf(
+        "gridu" to stringResource(R.string.home_layout_gridul),
+        "dashboard_ui" to stringResource(R.string.home_layout_dashboard),
+        "norpatch" to stringResource(R.string.home_layout_norpatch),
+    )
+    BasicAlertDialog(
+        onDismissRequest = { showDialog.value = false },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier.width(320.dp),
+            shape = RoundedCornerShape(30.dp),
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.settings_home_layout_style),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+                options.forEach { (key, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                prefs.edit().putString("home_layout_style", key).apply()
+                                refreshTheme.value = true
+                                showDialog.value = false
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = current == key, onClick = null)
+                        Spacer(Modifier.width(12.dp))
+                        Text(label, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                TextButton(
+                    onClick = { showDialog.value = false },
+                    modifier = Modifier.align(Alignment.End).padding(top = 8.dp),
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
         }
     }
 }

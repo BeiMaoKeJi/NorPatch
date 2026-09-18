@@ -13,3 +13,6 @@ key.jks.base64.txt
 app/src/main/resources/
 private
 .claude
+norpatch.jks
+norpatch.keystore
+local.properties

@@ -90,7 +90,6 @@ import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.ConfirmResult
-import me.bmax.apatch.ui.component.DrawerIconButton
 import me.bmax.apatch.ui.component.KPModuleRemoveButton
 import me.bmax.apatch.ui.component.LoadingDialogHandle
 import me.bmax.apatch.ui.component.ProvideMenuShape
@@ -158,7 +157,13 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
             searchText = viewModel.search,
             onSearchTextChange = { viewModel.search = it },
             searchBarPlaceHolderText = stringResource(R.string.search_modules),
-            navigationContent = { DrawerIconButton() }
+            navigationContent = {
+                Text(
+                    text = stringResource(R.string.kpm),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         )
     }, floatingActionButton = run {
         {
