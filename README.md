@@ -13,7 +13,11 @@ The patching of Android kernel and Android system, forked from APatch.
 
 </div>
 
+[English](#english) | [中文](#中文说明)
+
 ---
+
+## English
 
 NorPatch is a fork of APatch. The KernelPatch engine is kept untouched; only the UI layer is reworked.
 
@@ -37,6 +41,8 @@ NorPatch is a fork of APatch. The KernelPatch engine is kept untouched; only the
 - QQ Group: 1121505516
 
 ## 中文说明
+
+[↑ English](#english)
 
 NorPatch 基于 APatch 二次改版，仅替换前端 UI，底层 KernelPatch 引擎完全保留原版。
 
