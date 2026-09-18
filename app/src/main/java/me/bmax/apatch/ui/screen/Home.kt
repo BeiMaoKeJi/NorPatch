@@ -326,23 +326,6 @@ private fun HomeLayoutNorPatch(
 
                 Spacer(Modifier.height(cardSpacing))
 
-                // Entry: home appearance settings
-                GlassCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navigator.navigate(HomeAppearanceScreenDestination) },
-                    fillAlpha = 0.80f,
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Filled.Palette, null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(14.dp))
-                        Text(stringResource(R.string.home_appearance), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-
                 Spacer(Modifier.height(24.dp)) // thin tail; content slides behind the frosted dock like FP
                 Spacer(Modifier.height(24.dp))
         }

@@ -140,7 +140,7 @@ fun BottomBar(
         // Determine visible destinations
         val visibleDestinations = BottomBarDestination.entries.filter { destination ->
             when {
-                destination == BottomBarDestination.HomeAppearance || destination == BottomBarDestination.More -> false
+                destination == BottomBarDestination.More -> false
                 destination == BottomBarDestination.AModule && !showNavApm -> false
                 destination == BottomBarDestination.KModule && !showNavKpm -> false
                 destination == BottomBarDestination.SuperUser && !showNavSuperUser -> false
@@ -642,7 +642,7 @@ fun NavigationRailBar(navController: NavHostController) {
 
         val visibleDestinations = BottomBarDestination.entries.filter { destination ->
             when {
-                destination == BottomBarDestination.HomeAppearance || destination == BottomBarDestination.More -> false
+                destination == BottomBarDestination.More -> false
                 destination == BottomBarDestination.AModule && !showNavApm -> false
                 destination == BottomBarDestination.KModule && !showNavKpm -> false
                 destination == BottomBarDestination.SuperUser && !showNavSuperUser -> false

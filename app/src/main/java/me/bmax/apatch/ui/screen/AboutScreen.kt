@@ -3,6 +3,8 @@ package me.bmax.apatch.ui.screen
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -11,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +35,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -189,6 +193,55 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                         text = stringResource(R.string.home_community_copy_button),
                         style = MaterialTheme.typography.labelMedium,
                     )
+                }
+            }
+
+            // Project homepage card: tap to open GitHub.
+            AboutCard(
+                title = "项目地址",
+                icon = {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.OpenInNew,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+            ) {
+                Text(
+                    text = "github.com/BeiMaoKeJi/NorPatch",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "点击打开项目主页",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                FilledTonalButton(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/BeiMaoKeJi/NorPatch"))
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier.height(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("打开", style = MaterialTheme.typography.labelMedium)
                 }
             }
 

@@ -75,14 +75,6 @@ enum class BottomBarDestination(
         false,
         false
     ),
-    HomeAppearance(
-        HomeAppearanceScreenDestination,
-        R.string.home_appearance,
-        Icons.Filled.Wallpaper,
-        Icons.Outlined.Wallpaper,
-        false,
-        false
-    ),
     More(
         MoreScreenDestination,
         R.string.more,
