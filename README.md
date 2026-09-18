@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.jpg" style="width: 128px; border-radius: 50%;" alt="logo">
+
 <h1>NorPatch</h1>
 
 基于 APatch 的 Android Root 管理器
