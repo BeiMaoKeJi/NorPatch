@@ -4,6 +4,8 @@
 
 <h1>NorPatch</h1>
 
+**[English](#english) | [中文](#中文说明)**
+
 The patching of Android kernel and Android system, forked from APatch.
 
 [![Release](https://img.shields.io/badge/Release-v0.1.0-blue.svg?logo=github)](https://github.com/BeiMaoKeJi/NorPatch/releases)
@@ -12,8 +14,6 @@ The patching of Android kernel and Android system, forked from APatch.
 [![License](https://img.shields.io/badge/License-GPL--3.0-orange.svg?logo=gnu)](/LICENSE)
 
 </div>
-
-[English](#english) | [中文](#中文说明)
 
 ---
 
