@@ -46,6 +46,11 @@
 - Per-card appearance tuning (opacity / corner radius / shadow)
 - Switch between layouts, persisted locally
 
+## 联系方式
+
+- 官方 Telegram：[@NorPatch](https://t.me/NorPatch)
+- QQ 群：1121505516
+
 ## License
 
 GPL-3.0 © NorPatch
