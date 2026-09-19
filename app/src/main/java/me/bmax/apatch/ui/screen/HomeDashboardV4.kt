@@ -105,7 +105,7 @@ import me.bmax.apatch.util.ui.HomeBottomSpacer
 private val managerVersion = getManagerVersion()
 
 /**
- * FP Dashboard UI home 閳?ported from FolkPatch HomeScreenV4 (the
+ * FP Dashboard UI home 闁?ported from FolkPatch HomeScreenV4 (the
  * "dashboard_ui" layout): breathing-gradient hero card with version columns,
  * system info list, device status rings and storage progress bars.
  * UI-layer only; kernel/su/module logic below untouched.
@@ -160,7 +160,7 @@ fun HomeDashboardV4(
     }
 }
 
-/** Hero status card 閳?breathing gradient when working, install prompt otherwise. */
+/** Hero status card 闁?breathing gradient when working, install prompt otherwise. */
 @Composable
 private fun HeroStatusCardV4(
     kpState: APApplication.State,
@@ -400,7 +400,7 @@ private fun AndroidPatchCardV4(apState: APApplication.State) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
     ) {
         Row(
@@ -474,7 +474,7 @@ private fun AndroidPatchCardV4(apState: APApplication.State) {
     }
 }
 
-/** System info card 閳?icon rows, label above value, long-press to copy. */
+/** System info card 闁?icon rows, label above value, long-press to copy. */
 @Composable
 private fun SystemInfoCardV4(
     kpState: APApplication.State,
@@ -563,7 +563,7 @@ private fun InfoItemV4(icon: ImageVector, label: String, value: String) {
     }
 }
 
-/** Device status card 閳?battery temp / CPU load / battery level rings. */
+/** Device status card 闁?battery temp / CPU load / battery level rings. */
 @Composable
 private fun DeviceStatusCardV4() {
     val context = LocalContext.current
@@ -614,7 +614,7 @@ private fun DeviceStatusCardV4() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 StatusCircleV4(
-                    value = "${deviceStatus.batteryTemp}鎺矯",
+                    value = "${deviceStatus.batteryTemp}閹虹煰",
                     label = stringResource(R.string.home_device_status_battery_temp),
                     progress = (deviceStatus.batteryTemp / 50f).coerceIn(0f, 1f),
                     color = MaterialTheme.colorScheme.primary,
@@ -678,7 +678,7 @@ private fun StatusCircleV4(
     }
 }
 
-/** Storage info card 閳?internal storage and RAM progress bars. */
+/** Storage info card 闁?internal storage and RAM progress bars. */
 @Composable
 private fun StorageInfoCardV4() {
     var storageStatus by remember { mutableStateOf(SystemInfoCollector.StorageStatus()) }
@@ -782,7 +782,7 @@ private fun StorageProgressBarV4(
     }
 }
 
-/** Learn more card 閳?opens the About screen. */
+/** Learn more card 闁?opens the About screen. */
 @Composable
 private fun LearnMoreCardV4(navigator: DestinationsNavigator) {
     TonalCardV4(
@@ -821,7 +821,7 @@ private fun LearnMoreCardV4(navigator: DestinationsNavigator) {
     }
 }
 
-/** Tonal card 閳?20dp rounded, light elevation container. */
+/** Tonal card 闁?20dp rounded, light elevation container. */
 @Composable
 private fun TonalCardV4(
     modifier: Modifier = Modifier,
@@ -831,7 +831,7 @@ private fun TonalCardV4(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
     ) {
         Column(content = content)

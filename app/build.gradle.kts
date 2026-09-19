@@ -103,6 +103,14 @@ android {
         }
     }
 
+    androidComponents {
+        onVariants { variant ->
+            variant.outputs.forEach { output ->
+                (output as com.android.build.api.variant.impl.VariantOutputImpl).outputFileName.set("NorPatch-debug.apk")
+            }
+        }
+    }
+
     dependenciesInfo.includeInApk = false
 
     buildFeatures {
@@ -115,8 +123,7 @@ android {
     defaultConfig {
         // NorPatch: package ID changed to com.norpatch.manager.
         // The source namespace stays me.bmax.apatch so the native JNI binding
-        // (apjni.cpp), AIDL and app-zygote class names remain untouched —
-        // per the UI-only constraint no C/C++/JNI code may be modified.
+        // (apjni.cpp), AIDL and app-zygote class names remain untouched 閳?        // per the UI-only constraint no C/C++/JNI code may be modified.
         applicationId = "com.bmkj.NorPatch"
         minSdk = androidMinSdkVersion
         targetSdk = androidTargetSdkVersion

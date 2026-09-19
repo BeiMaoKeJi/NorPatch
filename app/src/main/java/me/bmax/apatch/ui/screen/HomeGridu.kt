@@ -58,7 +58,7 @@ import me.bmax.apatch.util.ui.HomeBottomSpacer
 private val managerVersion = getManagerVersion()
 
 /**
- * FP Gridu UI home 闁?ported from FolkPatch HomeScreenV2 (the "GridUI"
+ * FP Gridu UI home 闂?ported from FolkPatch HomeScreenV2 (the "GridUI"
  * layout): big status card on the left, two small info cards (kernel patch /
  * system patch) stacked on the right, then the AP card, device info list and
  * the learn-more card. UI-layer only; kernel/su/module logic below untouched.
@@ -76,6 +76,7 @@ fun HomeGridu(
         UninstallDialog(showDialog = showUninstallDialog, navigator)
     }
 
+    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
     Column(
         modifier = Modifier
             .padding(innerPadding)
@@ -164,6 +165,7 @@ fun HomeGridu(
 
         HomeBottomSpacer()
     }
+    }
 }
 
 /** Big status card: state text bottom-start, large check/warning icon top-end. */
@@ -186,13 +188,13 @@ fun StatusCardBigGridu(
     val containerColor = when {
         hasGridBg -> Color.Transparent
         isWorking -> MaterialTheme.colorScheme.primary
-        isUpdate -> MaterialTheme.colorScheme.secondaryContainer
-        else -> MaterialTheme.colorScheme.secondaryContainer
+        isUpdate -> MaterialTheme.colorScheme.surfaceContainer
+        else -> MaterialTheme.colorScheme.surfaceContainer
     }
     val contentColor = when {
         hasGridBg -> Color.White
         isWorking -> MaterialTheme.colorScheme.onPrimary
-        else -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     Card(
@@ -290,7 +292,7 @@ fun SmallInfoCardGridu(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
     ) {
         Column(
@@ -308,7 +310,7 @@ fun SmallInfoCardGridu(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Spacer(Modifier.height(4.dp))

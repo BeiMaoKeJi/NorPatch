@@ -334,7 +334,7 @@ private fun HomeLayoutNorPatch(
 
 
 // ---------------------------------------------------------------------------
-// Card 1 路 Status overview: big status text (left) + two rounded status tags
+// Card 1 璺?Status overview: big status text (left) + two rounded status tags
 // ---------------------------------------------------------------------------
 
 @Composable
@@ -363,7 +363,7 @@ private fun StatusOverviewContent(
             Text(
                 text = stringResource(R.string.home_status_kp_desc),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
             )
         }
@@ -419,7 +419,7 @@ private fun StatusTag(label: String, value: String, level: StatusLevel) {
         StatusLevel.MUTED -> StatusColors.muted()
     }
 
-    // Smooth color morph when the state changes (e.g. "闇€鏇存柊" -> "宸插畨瑁?).
+    // Smooth color morph when the state changes (e.g. "闂団偓閺囧瓨鏌? -> "瀹告彃鐣ㄧ憗?).
     val animatedBg by animateColorAsState(targetBg, tween(450), label = "tagBg")
     val animatedFg by animateColorAsState(targetFg, tween(450), label = "tagFg")
 
@@ -449,7 +449,7 @@ private fun StatusTag(label: String, value: String, level: StatusLevel) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.width(8.dp))
         Text(
@@ -481,7 +481,7 @@ private fun apStateText(state: APApplication.State): String = when (state) {
 }
 
 // ---------------------------------------------------------------------------
-// Card 2 路 Device info: device name on top, fixed-height two-column rows
+// Card 2 璺?Device info: device name on top, fixed-height two-column rows
 // ---------------------------------------------------------------------------
 
 @Composable
@@ -526,7 +526,7 @@ private fun DeviceInfoRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(0.9f),
         )
         Text(
@@ -542,7 +542,7 @@ private fun DeviceInfoRow(label: String, value: String) {
 }
 
 // ---------------------------------------------------------------------------
-// Card 3 路 About NorPatch
+// Card 3 璺?About NorPatch
 // ---------------------------------------------------------------------------
 
 @Composable
@@ -579,7 +579,7 @@ private fun AboutNorPatchContent(navigator: DestinationsNavigator) {
             Text(
                 text = stringResource(R.string.home_about_card_desc),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
         Icon(
@@ -621,7 +621,7 @@ fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: DestinationsNa
                 Text(
                     text = stringResource(id = R.string.home_dialog_uninstall_message),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(PaddingValues(bottom = 24.dp))
                 )
                 Row(
@@ -916,14 +916,14 @@ private fun StatusBlockContent(
                             text = stringResource(R.string.home_kernel_patch) + "  " +
                                 kernelPatchVersionText(kpState, isJailbreak),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(Modifier.height(1.dp))
                         Text(
                             text = stringResource(R.string.home_system_patch) + "  " +
                                 stringResource(systemPatchStateRes(apState)),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -938,7 +938,7 @@ private fun StatusBlockContent(
                     text = "${Version.installedKPVString()} (${managerVersion.second}) - " +
                         if (apState != APApplication.State.ANDROIDPATCH_NOT_INSTALLED) "Full" else "KernelPatch",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
 
@@ -1104,7 +1104,7 @@ private fun StatusBlockContent(
                             }
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.width(8.dp))
@@ -1194,7 +1194,7 @@ private fun GreetingBlockContent() {
     Text(
         text = greeting,
         style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = MaterialTheme.colorScheme.onSurface,
     )
     AnimatedContent(
         targetState = HomePrefs.homeSubtitle,
@@ -1205,7 +1205,7 @@ private fun GreetingBlockContent() {
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -1300,7 +1300,7 @@ private fun CustomImageContent() {
             Text(
                 text = stringResource(R.string.home_custom_image_empty),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )
         }
@@ -1336,7 +1336,7 @@ private fun CustomUptimeContent() {
         Text(
             text = stringResource(R.string.home_custom_uptime_label),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -1353,7 +1353,7 @@ private fun CustomTextContent() {
         Text(
             text = stringResource(R.string.home_custom_text_label),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(6.dp))
         Text(
@@ -1377,7 +1377,7 @@ private fun CustomBasicInfoContent() {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -1395,7 +1395,7 @@ private fun CustomBasicInfoContent() {
 @Composable
 private fun CustomDetailParamsContent() {
     val configuration = LocalConfiguration.current
-    val resolution = "${configuration.screenWidthDp} 脳 ${configuration.screenHeightDp}"
+    val resolution = "${configuration.screenWidthDp} 鑴?${configuration.screenHeightDp}"
     val abi = Build.SUPPORTED_ABIS.firstOrNull() ?: "N/A"
     val rows = listOf(
         stringResource(R.string.home_device_resolution) to resolution,
@@ -1409,7 +1409,7 @@ private fun CustomDetailParamsContent() {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(10.dp))
@@ -1452,7 +1452,7 @@ private fun CustomDeviceNameContent() {
         Text(
             text = stringResource(R.string.home_device_info),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -1567,7 +1567,7 @@ private fun DeviceBlockContent(
             Text(
                 text = stringResource(R.string.home_device_info),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -1649,7 +1649,7 @@ private fun ModuleCountPill(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
     }
@@ -1666,7 +1666,7 @@ private fun DeviceInfoRowLegacy(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(12.dp))
@@ -1716,7 +1716,7 @@ fun LearnMoreCard() {
                 Text(
                     text = stringResource(R.string.home_about_norpatch_desc),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -1748,13 +1748,13 @@ fun LearnMoreCard() {
                 Text(
                     text = stringResource(R.string.home_community_group),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = stringResource(R.string.home_community_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Icon(

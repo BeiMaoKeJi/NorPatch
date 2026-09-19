@@ -566,9 +566,9 @@ object GlassShapes {
 // ---------------------------------------------------------------------------
 
 /**
- * A translucent "姣涚幓鐠? card: semi-transparent white (light) / plum (dark)
+ * A translucent "婵犳鍣徊鍓х矙閹捐崵宓侀柟鍓х帛閸? card: semi-transparent white (light) / plum (dark)
  * fill with a soft vertical sheen, a thin highlight border and large rounded
- * corners 鈥?the FolkPatch M3E look. Pressing animates a gentle scale.
+ * corners 闂?the FolkPatch M3E look. Pressing animates a gentle scale.
  */
 @Composable
 fun GlassCard(
@@ -580,7 +580,7 @@ fun GlassCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val base = if (isDark) Color(0xFF241A20) else Color.White
+    val base = MaterialTheme.colorScheme.surface
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -606,11 +606,6 @@ fun GlassCard(
                 )
             )
         )
-        .border(
-            width = 1.dp,
-            color = if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.22f),
-            shape = shape,
-        )
         .then(
             if (onClick != null) {
                 Modifier.clickable(
@@ -628,7 +623,9 @@ fun GlassCard(
             alpha = BackgroundConfig.cardOpacity
         },
     ) {
-        Column(modifier = Modifier.padding(contentPadding)) { content() }
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+            Column(modifier = Modifier.padding(contentPadding)) { content() }
+        }
     }
 }
 
@@ -690,7 +687,7 @@ fun HomeBackgroundImage(modifier: Modifier = Modifier) {
     )
 
     Box(modifier = modifier.fillMaxSize().clipToBounds()) {
-        // Layer 0: flat light page color 鈥?never black, fills the whole screen.
+        // Layer 0: flat light page color 闂?never black, fills the whole screen.
         Box(
             Modifier
                 .fillMaxSize()
@@ -698,7 +695,7 @@ fun HomeBackgroundImage(modifier: Modifier = Modifier) {
         )
         val uri = BackgroundConfig.customBackgroundUri
         if (BackgroundConfig.isCustomBackgroundEnabled && uri != null) {
-            // Layer 1: background image 鈥?full-screen and overscanned 1.2x
+            // Layer 1: background image 闂?full-screen and overscanned 1.2x
             // (zoomed by ContentScale.Crop) so the blurred halo stays outside
             // the visible area: no dark edges / black ring around the screen.
             Box(
@@ -722,7 +719,7 @@ fun HomeBackgroundImage(modifier: Modifier = Modifier) {
                 )
             }
             // Layer 2: white translucent veil. The global transparency slider
-            // only affects this layer 鈥?the image underneath stays fully opaque,
+            // only affects this layer 闂?the image underneath stays fully opaque,
             // and cards / text never participate in the veil (no black tint).
             Box(
                 Modifier
@@ -822,13 +819,13 @@ fun BlockBackground(block: HomeBlock, modifier: Modifier = Modifier) {
             // background-opacity slider so tweaking it morphs home cards and all
             // other pages (settings/superuser/module lists) together.
             val frostedAlpha = if (BackgroundConfig.isCustomBackgroundEnabled) {
-                BackgroundConfig.customBackgroundOpacity.coerceIn(0.25f, 0.85f)
+                BackgroundConfig.customBackgroundOpacity.coerceIn(0.85f, 1.0f)
             } else {
                 alpha
             }
             Box(
                 modifier.background(
-                    Color(HomePrefs.blockBgColor[block] ?: HomePrefs.DEFAULT_BLOCK_COLOR)
+                    MaterialTheme.colorScheme.surfaceContainer
                         .copy(alpha = frostedAlpha)
                 )
             )
@@ -878,21 +875,25 @@ fun BlockCard(
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            (if (isDark) Color(0xFF241A20) else Color.White).copy(alpha = 0.22f),
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
                             Color.Transparent,
                         )
                     )
                 )
         )
         Column(Modifier.padding(contentPadding)) {
-            if (windowMode) {
-                BlockWindowTitleBar(
-                    block = block,
-                    onSettingsClick = onSettingsClick,
-                )
-                Spacer(Modifier.height(10.dp))
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface
+            ) {
+                if (windowMode) {
+                    BlockWindowTitleBar(
+                        block = block,
+                        onSettingsClick = onSettingsClick,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
+                content()
             }
-            content()
         }
     }
 }
@@ -940,7 +941,7 @@ private fun BlockWindowTitleBar(
 }
 
 /** Soft pastel palette shared by block backgrounds and content colors.
- *  Light tints only 鈥?no black / dark-gray content layer colors. */
+ *  Light tints only 闂?no black / dark-gray content layer colors. */
 val BlockPalette = listOf(
     0xFFFDF1F5, 0xFFFFF3E3, 0xFFE8F6EC, 0xFFE8F1FF,
     0xFFF3E8FF, 0xFFFFEBF1, 0xFFEAF7F7,

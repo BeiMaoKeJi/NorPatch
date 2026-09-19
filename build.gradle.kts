@@ -49,7 +49,7 @@ fun getBranch(): String {
 }
 
 fun getVersionName(): String {
-    return "0.1.1"
+    return "0.1.15"
 }
 
 tasks.register("printVersion") {
