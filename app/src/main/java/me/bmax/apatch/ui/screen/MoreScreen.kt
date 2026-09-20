@@ -138,6 +138,7 @@ private fun MoreEntry(
     onClick: () -> Unit,
 ) {
     ListItem(
+                colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
         leadingContent = {
             Box(
                 modifier = Modifier

@@ -468,6 +468,7 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                 // NorPatch: Home Appearance entry
                 divider()
                 ListItem(
+                colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = { Icon(Icons.Filled.Wallpaper, null) },
                     headlineContent = { Text(stringResource(id = R.string.home_appearance)) },
                     supportingContent = { Text(stringResource(id = R.string.home_appearance_summary)) },
@@ -479,6 +480,7 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                 if (kPatchReady) {
                     divider()
                     ListItem(
+                colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         leadingContent = {
                             Icon(
                                 Icons.Filled.Commit, stringResource(id = R.string.setting_reset_su_path)
@@ -510,6 +512,7 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                 // log
                 divider()
                 ListItem(
+                colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = {
                         Icon(
                             Icons.Filled.BugReport, stringResource(id = R.string.send_log)

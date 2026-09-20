@@ -150,6 +150,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             val showHomeLayoutDialog = remember { mutableStateOf(false) }
             SectionCard(stringResource(R.string.settings)) {
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = {
                         Icon(Icons.Filled.GridView, null, tint = MaterialTheme.colorScheme.primary)
                     },
@@ -172,6 +173,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                 )
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = {
                         Icon(Icons.Filled.Engineering, null, tint = MaterialTheme.colorScheme.primary)
                     },
@@ -191,6 +193,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                 )
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = {
                         Icon(Icons.Filled.InvertColors, null, tint = MaterialTheme.colorScheme.primary)
                     },
@@ -235,6 +238,7 @@ fun ThemeChooseDialog(showDialog: MutableState<Boolean>) {
             LazyColumn {
                 items(colorsList()) {
                     ListItem(
+                        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         headlineContent = { Text(text = stringResource(it.nameId)) },
                         modifier = Modifier.clickable {
                             showDialog.value = false
@@ -465,6 +469,7 @@ fun LanguageDialog(showLanguageDialog: MutableState<Boolean>) {
                 LazyColumn {
                     itemsIndexed(languages) { index, item ->
                         ListItem(
+                            colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                             headlineContent = { Text(item) },
                             modifier = Modifier.clickable {
                                 showLanguageDialog.value = false

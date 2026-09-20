@@ -107,6 +107,16 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
+        SingletonImageLoader.setSafe(
+            SingletonImageLoader.Factory { context ->
+                ImageLoader.Builder(context)
+                    .components {
+                        add(AppIconKeyer())
+                        add(AppIconFetcher.Factory(context))
+                    }
+                    .build()
+            }
+        )
         setContent {
             APatchTheme {
                 val navController = rememberNavController()
@@ -142,7 +152,7 @@ class MainActivity : AppCompatActivity() {
 
                 val defaultTransitions = object : NavHostAnimatedDestinationStyle() {
                     // Unified smooth transitions: fade + gentle scale + a small
-                    // vertical drift for every page change 鈥?no slide jank.
+                    // vertical drift for every page change 閳?no slide jank.
                     override val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
                         {
                             fadeIn(animationSpec = tween(340)) +
@@ -243,16 +253,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-        SingletonImageLoader.setSafe(
-            SingletonImageLoader.Factory { context ->
-                ImageLoader.Builder(context)
-                    .components {
-                        add(AppIconKeyer())
-                        add(AppIconFetcher.Factory(context))
-                    }
-                    .build()
-            }
-        )
 
         isLoading = false
     }

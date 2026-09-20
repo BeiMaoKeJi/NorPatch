@@ -197,6 +197,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
                     headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
                     supportingContent = { Text(stringResource(R.string.home_bg_pick_summary)) },
@@ -210,6 +211,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 if (BackgroundConfig.customBackgroundUri != null) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     ListItem(
+                        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         leadingContent = { Icon(Icons.Filled.Delete, null) },
                         headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
                         modifier = Modifier
@@ -262,6 +264,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
                     headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
                     modifier = Modifier
@@ -271,6 +274,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 if (BackgroundConfig.gridWorkingCardBackgroundUri != null) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     ListItem(
+                        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         leadingContent = { Icon(Icons.Filled.Delete, null) },
                         headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
                         modifier = Modifier
@@ -338,6 +342,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                 ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = { Icon(Icons.Filled.Image, null, tint = MaterialTheme.colorScheme.primary) },
                     headlineContent = { Text(stringResource(R.string.home_bg_pick)) },
                     modifier = Modifier
@@ -347,6 +352,7 @@ fun HomeAppearanceScreen(navigator: DestinationsNavigator) {
                 if (BackgroundConfig.dashboardCardBgUri != null) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
                     ListItem(
+                        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         leadingContent = { Icon(Icons.Filled.Delete, null) },
                         headlineContent = { Text(stringResource(R.string.home_bg_remove)) },
                         modifier = Modifier

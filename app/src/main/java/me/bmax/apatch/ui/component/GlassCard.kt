@@ -151,7 +151,7 @@ object HomePrefs {
     const val DEFAULT_BLOCK_CORNER = 22f
     const val DEFAULT_BLOCK_BORDER = false
     const val DEFAULT_BLOCK_BORDER_COLOR = 0xFFE8DDE8
-    const val DEFAULT_BLOCK_SHADOW = true
+    const val DEFAULT_BLOCK_SHADOW = false
     const val DEFAULT_BLOCK_SHADOW_STRENGTH = 12
     const val DEFAULT_BLOCK_WIDTH_RATIO = 1f
     const val DEFAULT_BLOCK_SPACING = 14
@@ -566,7 +566,7 @@ object GlassShapes {
 // ---------------------------------------------------------------------------
 
 /**
- * A translucent "婵犳鍣徊鍓х矙閹捐崵宓侀柟鍓х帛閸? card: semi-transparent white (light) / plum (dark)
+ * A translucent "婵犵數濮甸鏍闯椤栨粌绶ら柛鎾楀懐鐓撻梺瑙勫礃瀹曢潧鐣垫笟鈧弻鐔煎礈瑜忕敮娑㈡煕? card: semi-transparent white (light) / plum (dark)
  * fill with a soft vertical sheen, a thin highlight border and large rounded
  * corners 闂?the FolkPatch M3E look. Pressing animates a gentle scale.
  */
@@ -579,8 +579,12 @@ fun GlassCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val base = MaterialTheme.colorScheme.surface
+    val frostedAlpha = if (BackgroundConfig.isCustomBackgroundEnabled) {
+        BackgroundConfig.customBackgroundOpacity.coerceIn(0.5f, 0.8f)
+    } else {
+        1f
+    }
+    val base = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = frostedAlpha)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -819,7 +823,7 @@ fun BlockBackground(block: HomeBlock, modifier: Modifier = Modifier) {
             // background-opacity slider so tweaking it morphs home cards and all
             // other pages (settings/superuser/module lists) together.
             val frostedAlpha = if (BackgroundConfig.isCustomBackgroundEnabled) {
-                BackgroundConfig.customBackgroundOpacity.coerceIn(0.85f, 1.0f)
+                BackgroundConfig.customBackgroundOpacity.coerceIn(0.5f, 0.8f)
             } else {
                 alpha
             }
@@ -869,18 +873,6 @@ fun BlockCard(
         },
     ) {
         BlockBackground(block, Modifier.matchParentSize())
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
-                            Color.Transparent,
-                        )
-                    )
-                )
-        )
         Column(Modifier.padding(contentPadding)) {
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface
