@@ -53,17 +53,34 @@ val baseArgs = mutableListOf(
 android {
     namespace = "me.bmax.apatch"
 
+    // Local debug placeholder keystore (NOT the official release key).
+    // On CI the file does not exist, and pointing storeFile at a missing path
+    // makes Gradle fail with "Keystore file not found" — so the config is only
+    // wired up when the file is actually present. Real keys can be supplied
+    // through the NORPATCH_* environment variables on any machine.
+    val placeholderKeystore = file(
+        System.getenv("NORPATCH_KEYSTORE_PATH") ?: "D:/NorPatch/norpatch.jks"
+    )
+
     signingConfigs {
         create("norpatch") {
-            storeFile = file("D:\\NorPatch\\norpatch.jks")
-            storePassword = "norpatch"
-            keyAlias = "norpatch"
-            keyPassword = "norpatch"
+            if (placeholderKeystore.exists()) {
+                storeFile = placeholderKeystore
+                storePassword = System.getenv("NORPATCH_KEYSTORE_PASSWORD") ?: "norpatch"
+                keyAlias = System.getenv("NORPATCH_KEY_ALIAS") ?: "norpatch"
+                keyPassword = System.getenv("NORPATCH_KEY_PASSWORD") ?: "norpatch"
+            }
         }
     }
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("norpatch")
+            // Fall back to the default debug key when the placeholder is absent,
+            // so CI can build without any signing material.
+            signingConfig = if (placeholderKeystore.exists()) {
+                signingConfigs.getByName("norpatch")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
