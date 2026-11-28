@@ -1,0 +1,179 @@
+================================================================================
+NorPatch 仓库编译环境说明
+仓库：BeiMaoKeJi/NorPatch（基于 APatch 二次改版，前端替换，底层 KernelPatch 引擎保留）
+当前提交：f0f7fed  v0.1.23  2026-09-20
+applicationId：com.bmkj.NorPatch
+说明：本文件按你自己 Windows D 盘已有编译环境编写；仓库内没有配置任何国内镜像源，
+      请勿额外添加阿里云/腾讯云/清华等 Maven、Gradle、Cargo 国内镜像。
+================================================================================
+
+一、必须安装的工具及版本（版本号均来自仓库配置，尽量对齐）
+--------------------------------------------------------------------------------
+
+1. JDK 21（必须 21）
+   - 源码编译目标：Java 21，Kotlin jvmTarget = JVM_21。
+   - 建议用 JDK 21（Oracle / OpenJDK / JetBrains Runtime 21 均可）。
+   - 放到 D 盘例如：D:\Tools\jdk-21
+   - 环境变量：
+       JAVA_HOME = D:\Tools\jdk-21
+       Path 中加入 %JAVA_HOME%\bin
+
+2. Android SDK（在 D 盘，例如 D:\Android\Sdk）
+   - compileSdkVersion：37
+   - targetSdkVersion：36
+   - minSdkVersion：26
+   - build-tools：36.1.0
+   - NDK：29.0.14206865
+   - CMake：3.28.0 或更高（AGP 外部原生构建需要）
+   - 通过 SDK Manager 安装：
+       * SDK Platform 37
+       * Build-Tools 36.1.0
+       * NDK 29.0.14206865
+       * CMake 3.28.x
+   - 环境变量：
+       ANDROID_HOME = D:\Android\Sdk
+       ANDROID_SDK_ROOT = D:\Android\Sdk
+       Path 中加入 %ANDROID_HOME%\platform-tools
+
+3. Gradle：不用手动单独装，用仓库自带 Wrapper
+   - Wrapper 版本：Gradle 9.7.0
+   - 配置文件：gradle/wrapper/gradle-wrapper.properties
+   - 发行包地址（官方）：https://services.gradle.org/distributions/gradle-9.7.0-bin.zip
+   - 首次执行 gradlew 会自动下载 Gradle 9.7.0 到 GRADLE_USER_HOME。
+
+4. Rust 工具链（编译 apd 原生守护进程，Rust 2024 edition）
+   - 安装 rustup + stable 通道（Rust 需为较新的 stable，支持 edition 2024）。
+   - 目标平台：aarch64-linux-android（仓库只打 arm64-v8a）。
+   - 需要 cargo-ndk 插件。
+   - 命令（在已装好 rustup 后执行一次）：
+       rustup default stable
+       rustup update stable
+       rustup target add aarch64-linux-android
+       cargo install cargo-ndk
+   - Rust/Cargo 缓存可放到 D 盘，环境变量：
+       CARGO_HOME = D:\Tools\cargo
+       Path 中加入 %CARGO_HOME%\bin
+
+5. Git（必须，且必须保留 .git 目录）
+   - 版本号 versionCode = managerVersionEpoch(10200) + git 提交数，
+     构建时通过 `git rev-list --count HEAD` 计算；没有 .git 目录会报错。
+   - 环境变量 Path 中能调用 git。
+
+6. 可选项：ccache
+   - 若 D 盘装有 ccache，CMake 会自动检测并用作编译缓存；没有也不影响编译。
+
+
+二、把缓存/目录指到 D 盘（避免占用 C 盘，不改动下载源）
+--------------------------------------------------------------------------------
+
+仓库默认依赖源全部为官方源，下面只是把本地缓存目录挪到 D 盘，不要把源换成国内镜像：
+
+- Gradle 缓存（依赖、Wrapper 解压目录）：
+    GRADLE_USER_HOME = D:\Android\.gradle
+
+- Cargo 注册表/缓存：
+    CARGO_HOME = D:\Tools\cargo
+
+- Android SDK：见上一节 ANDROID_HOME。
+
+- 项目根目录新建 local.properties（文件已被 .gitignore 忽略，不会提交），内容：
+    sdk.dir=D:\\Android\\Sdk
+  注意 Windows 路径用双反斜杠。
+
+- 如需指定 Gradle 使用的 JDK，可在项目 gradle.properties 或环境变量中设置：
+    org.gradle.java.home=D:/Tools/jdk-21
+
+
+三、仓库使用的官方下载源（已核对，无国内镜像）
+--------------------------------------------------------------------------------
+
+Gradle / Maven 依赖（settings.gradle.kts）：
+  - Google Maven：        https://dl.google.com/dl/android/maven2/
+  - Maven Central：       https://repo.maven.apache.org/maven2/
+  - JitPack：             https://jitpack.io
+  - Gradle 插件门户：     https://plugins.gradle.org/m2/
+
+Rust 依赖（apd/Cargo.toml）：
+  - crates.io 官方注册表
+  - 三个固定 rev 的 GitHub 依赖（AndroidPatch 组织）：
+      https://github.com/AndroidPatch/java-properties.git
+      https://github.com/AndroidPatch/restprops
+      https://github.com/AndroidPatch/ap_policy
+
+构建时自动从 GitHub Release 下载的 KernelPatch 资产（preBuild 任务）：
+  - kpimg-android
+  - kptools-android  -> app/libs/arm64-v8a/libkptools.so
+  - kpatch-android（0.10.7 兼容版）-> app/libs/arm64-v8a/libkpatch.so
+  - 各 KMI 的 jailbreak kernelpatch.ko（assets 目录）
+  来源：https://github.com/bmax121/KernelPatch/releases
+  注意：首次构建需要能正常访问 github.com 及其 Release 下载地址。
+
+
+四、签名配置说明（重启维护前建议先改）
+--------------------------------------------------------------------------------
+
+app/build.gradle.kts 中目前写死了本地签名：
+    storeFile  = D:\NorPatch\norpatch.jks
+    storePassword / keyAlias / keyPassword 均为 norpatch
+
+- 该 jks 已在 .gitignore 中排除，不会进仓库。
+- 本地编译 debug 包时，要么按上面路径放一个名为 norpatch.jks 的密钥库，
+  要么把 signingConfig 改成你自己的密钥，或先注释掉自定义签名、用默认 debug 签名。
+- 正式发版建议：签名口令不要用 norpatch，密钥与口令走环境变量/CI Secrets，不要入库。
+
+
+五、编译步骤（Windows 命令行，项目根目录）
+--------------------------------------------------------------------------------
+
+1. 确认环境变量已生效（重开终端后用 `echo %JAVA_HOME%`、`git --version`、
+   `cargo --version`、`rustup target list --installed` 检查）。
+
+2. 进入项目根目录（gradlew.bat 所在目录）。
+
+3. 编译 Debug 包：
+       gradlew.bat assembleDebug
+
+4. 编译 Release 包：
+       gradlew.bat assembleRelease
+
+5. 产物位置：
+       app\build\outputs\apk\debug\NorPatch-debug.apk
+       app\build\outputs\apk\release\*.apk
+
+6. 清理构建：
+       gradlew.bat clean
+   （clean 会顺带执行 cargo clean 并删除 libapd.so）
+
+
+六、构建流程中会自动完成的事
+--------------------------------------------------------------------------------
+
+- Gradle 解析 Google/Maven Central/JitPack 依赖。
+- preBuild 下载 KernelPatch 的 kpimg / kptools / kpatch / .ko 资产。
+- cargoBuild：在 apd 目录执行
+      cargo ndk -t arm64-v8a build --release
+  产物 apd/target/aarch64-linux-android/release/apd，拷贝为
+  app/libs/arm64-v8a/libapd.so。
+- CMake 编译 cpp 下的 apjni 原生库（arm64-v8a）。
+- KSP 生成 Compose Destinations 导航代码。
+
+
+七、常见问题 / 注意事项
+--------------------------------------------------------------------------------
+
+1. 只支持 arm64-v8a（abiFilters 固定 arm64-v8a），不出 x86/x86_64 包。
+2. 必须保留 .git 目录，否则 versionCode 计算失败。
+3. Rust 为 edition 2024，rustup 停留在旧 stable 会编译报错，先 `rustup update stable`。
+4. NDK 版本必须是 29.0.14206865，CMake ≥ 3.28.0；版本不一致可能原生构建失败。
+5. 首次构建需要联网下载 Gradle 发行包、Maven 依赖、Cargo crate 和 KernelPatch 资产；
+   这些都走官方源，不要中途替换成国内镜像，以免依赖解析或哈希不一致。
+6. 若 Gradle 报 JDK 版本不符，检查 JAVA_HOME 与 org.gradle.java.home 是否指向 JDK 21。
+7. 仓库内置 libbootctl.so、libbusybox.so 为上游 APatch 原样二进制（MD5 与上游一致），
+   不要在未核对的情况下替换。
+
+================================================================================
+附：关键版本速查
+  JDK 21 | Gradle 9.7.0 | AGP 9.3.1 | Kotlin 2.4.10 | KSP 2.3.11
+  compileSdk 37 | targetSdk 36 | minSdk 26 | build-tools 36.1.0
+  NDK 29.0.14206865 | CMake 3.28.0+ | Rust stable(edition 2024) | 目标 aarch64-linux-android
+================================================================================

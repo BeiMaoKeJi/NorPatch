@@ -15,8 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.bmax.apatch.APApplication
@@ -29,7 +31,6 @@ import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.PkgConfig
 import java.text.Collator
 import java.util.Locale
-import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -64,6 +65,24 @@ class SuperUserViewModel : ViewModel() {
     var showSystemApps by mutableStateOf(false)
     var isRefreshing by mutableStateOf(false)
         private set
+
+    // UIDs whose grant/revoke/exclude is still being applied in the background.
+    // The row's Switch is disabled while its uid is pending, preventing duplicate
+    // taps from racing each other (which previously caused jank + lost updates).
+    private val _pendingUids = mutableStateOf<Set<Int>>(emptySet())
+    val pendingUids: Set<Int> get() = _pendingUids.value
+
+    fun isPending(uid: Int): Boolean = uid in _pendingUids.value
+
+    private fun markPending(uid: Int): Boolean {
+        if (uid in _pendingUids.value) return false
+        _pendingUids.value = _pendingUids.value + uid
+        return true
+    }
+
+    private fun clearPending(uid: Int) {
+        _pendingUids.value = _pendingUids.value - uid
+    }
 
     private val collator = Collator.getInstance(Locale.getDefault())
 
@@ -136,12 +155,10 @@ class SuperUserViewModel : ViewModel() {
                 val uids = Natives.suUids().toList()
                 Log.d(TAG, "all allows: $uids")
 
-                var configs: HashMap<Int, PkgConfig.Config> = HashMap()
-                thread {
-                    Natives.su()
-                    configs = PkgConfig.readConfigs()
-                }.join()
-
+                // Already on Dispatchers.IO: run the config read inline instead of
+                // spawning (and joining) an extra thread for no reason.
+                Natives.su()
+                val configs = PkgConfig.readConfigs()
                 Log.d(TAG, "all configs: $configs")
 
                 val newApps = allPackages.list.map {
@@ -196,6 +213,7 @@ class SuperUserViewModel : ViewModel() {
     }
 
     fun setRootGranted(app: AppInfo, granted: Boolean) {
+        if (!markPending(app.uid)) return
         val config = app.config
         val newConfig = if (granted) {
             config.copy(
@@ -206,17 +224,32 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(allow = 0, profile = config.profile.copy(uid = app.uid))
         }
-        PkgConfig.changeConfig(newConfig)
-        if (granted) {
-            Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
-            Natives.setUidExclude(app.uid, 0)
-        } else {
-            Natives.revokeSu(app.uid)
-        }
+
+        // Optimistic UI update: flip the switch immediately so the interaction
+        // feels instant; the kernel-side work runs off the main thread below.
         updateAppConfig(app, newConfig)
+
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                PkgConfig.changeConfig(newConfig)
+                if (granted) {
+                    Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
+                    Natives.setUidExclude(app.uid, 0)
+                } else {
+                    Natives.revokeSu(app.uid)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to ${if (granted) "grant" else "revoke"} su for ${app.packageName}", e)
+                // Roll back the optimistic flip so the UI reflects reality.
+                updateAppConfig(app, config)
+            } finally {
+                clearPending(app.uid)
+            }
+        }
     }
 
     fun setExcluded(app: AppInfo, excluded: Boolean) {
+        if (!markPending(app.uid)) return
         val config = app.config
         val newConfig = if (excluded) {
             config.copy(
@@ -227,11 +260,22 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(exclude = 0, profile = config.profile.copy(uid = app.uid))
         }
-        if (excluded) {
-            Natives.revokeSu(app.uid)
-        }
-        PkgConfig.changeConfig(newConfig)
-        Natives.setUidExclude(app.uid, newConfig.exclude)
+
         updateAppConfig(app, newConfig)
+
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                if (excluded) {
+                    Natives.revokeSu(app.uid)
+                }
+                PkgConfig.changeConfig(newConfig)
+                Natives.setUidExclude(app.uid, newConfig.exclude)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to set exclude=$excluded for ${app.packageName}", e)
+                updateAppConfig(app, config)
+            } finally {
+                clearPending(app.uid)
+            }
+        }
     }
 }

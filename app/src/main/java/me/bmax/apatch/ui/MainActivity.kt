@@ -88,6 +88,7 @@ import me.bmax.apatch.ui.screen.BottomBarDestination
 import me.bmax.apatch.util.ui.navBarLiquefiable
 import me.bmax.apatch.util.ui.rememberNavBarGlassLiquidState
 import me.bmax.apatch.ui.theme.APatchTheme
+import me.bmax.apatch.ui.theme.BackgroundConfig
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 
@@ -117,6 +118,12 @@ class MainActivity : AppCompatActivity() {
                     .build()
             }
         )
+        // Load every appearance setting synchronously BEFORE the first
+        // composition. Otherwise the cold-start first frame renders with JVM
+        // default values (e.g. block backgrounds) and only "fixes" itself when
+        // something later triggers a recomposition — which is exactly why a
+        // manual layout switch looked correct while a fresh start did not.
+        BackgroundConfig.load(this)
         setContent {
             APatchTheme {
                 val navController = rememberNavController()

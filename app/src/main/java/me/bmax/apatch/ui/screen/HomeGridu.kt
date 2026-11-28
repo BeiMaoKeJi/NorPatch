@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -42,6 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.generated.destinations.InstallModeSelectScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import me.bmax.apatch.ui.component.globalCardBorder
+import me.bmax.apatch.ui.component.globalCardElevation
+import me.bmax.apatch.ui.component.globalCardShape
 import me.bmax.apatch.ui.theme.BackgroundConfig
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.alpha
@@ -200,7 +202,9 @@ fun StatusCardBigGridu(
     Card(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = globalCardShape(),
+        border = globalCardBorder(),
+        elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
             contentColor = contentColor,
@@ -290,7 +294,9 @@ fun SmallInfoCardGridu(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = globalCardShape(),
+        border = globalCardBorder(),
+        elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),

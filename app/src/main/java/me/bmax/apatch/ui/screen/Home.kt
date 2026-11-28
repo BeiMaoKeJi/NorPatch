@@ -301,7 +301,7 @@ private fun HomeLayoutNorPatch(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
         ) {
-                Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
                 val cardSpacing = (HomePrefs.blockSpacing[HomeBlock.STATUS]
                     ?: HomePrefs.DEFAULT_BLOCK_SPACING).dp
 
@@ -729,9 +729,14 @@ private fun HomeTopActions(
                     )
                 }
                 ProvideMenuShape(RoundedCornerShape(14.dp)) {
-                    DropdownMenu(expanded = showDropdownMoreOptions, onDismissRequest = {
-                        showDropdownMoreOptions = false
-                    }) {
+                    DropdownMenu(
+                        expanded = showDropdownMoreOptions,
+                        onDismissRequest = {
+                            showDropdownMoreOptions = false
+                        },
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        tonalElevation = 0.dp,
+                    ) {
                         if (kpState != APApplication.State.UNKNOWN_STATE) {
                             HorizontalDivider()
                             RebootDropdownItem(id = R.string.reboot, onClick = {
@@ -1469,7 +1474,6 @@ fun WarningCard() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            fillAlpha = 0.88f,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1696,7 +1700,6 @@ fun LearnMoreCard() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        fillAlpha = 0.80f,
     ) {
         // Local intro text (no external link)
         Row(verticalAlignment = Alignment.CenterVertically) {

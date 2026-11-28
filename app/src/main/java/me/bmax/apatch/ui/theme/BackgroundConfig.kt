@@ -180,12 +180,70 @@ object BackgroundConfig {
     var isNavBarGlassInnerGlowEnabled: Boolean by mutableStateOf(true)
         private set
     var isNavBarGlassBorderEnabled: Boolean by mutableStateOf(true)
-    // Global card transparency (applies to every homepage card, 0.1..1.0)
+    // Global card style: unifies every card across all screens (home, settings,
+    // superuser, module lists) so they share one glass look, customizable once.
     var cardOpacity: Float by mutableStateOf(1f)
+        private set
+    // Frosted-glass alpha for every card, independent of whether a custom
+    // wallpaper is set. Keeps cards translucent (never a solid slab) across
+    // layout switches and app restarts.
+    var cardGlassAlpha: Float by mutableStateOf(0.35f)
+        private set
+    var cardCornerRadius: Float by mutableStateOf(28f)
+        private set
+    var cardBorderEnabled: Boolean by mutableStateOf(false)
+        private set
+    var cardBorderColor: Long by mutableStateOf(0xFFFFFFFF)
         private set
 
     fun setCardOpacityValue(value: Float) {
         cardOpacity = value.coerceIn(0.1f, 1f)
+    }
+
+    fun setCardGlassAlphaValue(value: Float) {
+        cardGlassAlpha = value.coerceIn(0.15f, 0.95f)
+    }
+
+    fun setCardCornerRadiusValue(value: Float) {
+        cardCornerRadius = value.coerceIn(0f, 40f)
+    }
+
+    fun setCardBorderEnabledState(enabled: Boolean) {
+        cardBorderEnabled = enabled
+    }
+
+    fun setCardBorderColorValue(color: Long) {
+        cardBorderColor = color
+    }
+
+    // Card shadow (soft depth under every glass card), 0..24 dp.
+    var cardShadowEnabled: Boolean by mutableStateOf(false)
+        private set
+    var cardShadowElevation: Float by mutableStateOf(0f)
+        private set
+
+    // Card content padding density multiplier, 0.5x (compact) .. 1.5x (roomy).
+    var cardPaddingScale: Float by mutableStateOf(1f)
+        private set
+
+    fun setCardShadowEnabledState(enabled: Boolean) {
+        cardShadowEnabled = enabled
+    }
+
+    fun setCardShadowElevationValue(value: Float) {
+        cardShadowElevation = value.coerceIn(0f, 24f)
+    }
+
+    fun setCardPaddingScaleValue(value: Float) {
+        cardPaddingScale = value.coerceIn(0.5f, 1.5f)
+    }
+
+    // Global animation preset: 0 = none, 1 = fade, 2 = scale, 3 = slide up, 4 = spring.
+    var animationPreset: Int by mutableStateOf(4)
+        private set
+
+    fun setAnimationPresetValue(preset: Int) {
+        animationPreset = preset.coerceIn(0, 4)
     }
     
     private const val PREFS_NAME = "background_settings"
@@ -265,13 +323,23 @@ object BackgroundConfig {
     private const val KEY_DASHBOARD_CARD_DAY_OPACITY = "dashboard_card_day_opacity"
     private const val KEY_DASHBOARD_CARD_NIGHT_OPACITY = "dashboard_card_night_opacity"
 
-    private const val KEY_NAVBAR_GLASS_ENABLED = "navbar_glass_enabled"
+    private const val KEY_NAVBAR_GLASS_ENABLED = "navbar_glass_enabled_v2"
     private const val KEY_NAVBAR_GLASS_BLUR_STRENGTH = "navbar_glass_blur_strength"
     private const val KEY_NAVBAR_GLASS_TRANSPARENCY = "navbar_glass_transparency"
     private const val KEY_NAVBAR_GLASS_HIGHLIGHT_STRENGTH = "navbar_glass_highlight_strength"
     private const val KEY_NAVBAR_GLASS_SPECULAR_ENABLED = "navbar_glass_specular_enabled"
     private const val KEY_NAVBAR_GLASS_INNER_GLOW_ENABLED = "navbar_glass_inner_glow_enabled"
     private const val KEY_NAVBAR_GLASS_BORDER_ENABLED = "navbar_glass_border_enabled"
+
+    private const val KEY_CARD_OPACITY = "card_opacity"
+    private const val KEY_CARD_GLASS_ALPHA = "card_glass_alpha_v2"
+    private const val KEY_CARD_CORNER_RADIUS = "card_corner_radius"
+    private const val KEY_CARD_BORDER_ENABLED = "card_border_enabled"
+    private const val KEY_CARD_BORDER_COLOR = "card_border_color"
+    private const val KEY_CARD_SHADOW_ENABLED = "card_shadow_enabled"
+    private const val KEY_CARD_SHADOW_ELEVATION = "card_shadow_elevation"
+    private const val KEY_CARD_PADDING_SCALE = "card_padding_scale"
+    private const val KEY_ANIMATION_PRESET = "animation_preset"
 
     private const val TAG = "BackgroundConfig"
     
@@ -750,6 +818,16 @@ object BackgroundConfig {
             putBoolean(KEY_NAVBAR_GLASS_INNER_GLOW_ENABLED, isNavBarGlassInnerGlowEnabled)
             putBoolean(KEY_NAVBAR_GLASS_BORDER_ENABLED, isNavBarGlassBorderEnabled)
 
+            putFloat(KEY_CARD_OPACITY, cardOpacity)
+            putFloat(KEY_CARD_GLASS_ALPHA, cardGlassAlpha)
+            putFloat(KEY_CARD_CORNER_RADIUS, cardCornerRadius)
+            putBoolean(KEY_CARD_BORDER_ENABLED, cardBorderEnabled)
+            putLong(KEY_CARD_BORDER_COLOR, cardBorderColor)
+            putBoolean(KEY_CARD_SHADOW_ENABLED, cardShadowEnabled)
+            putFloat(KEY_CARD_SHADOW_ELEVATION, cardShadowElevation)
+            putFloat(KEY_CARD_PADDING_SCALE, cardPaddingScale)
+            putInt(KEY_ANIMATION_PRESET, animationPreset)
+
             apply()
         }
     }
@@ -838,13 +916,23 @@ object BackgroundConfig {
         val dashboardCardDayOpacity = prefs.getFloat(KEY_DASHBOARD_CARD_DAY_OPACITY, 1f)
         val dashboardCardNightOpacity = prefs.getFloat(KEY_DASHBOARD_CARD_NIGHT_OPACITY, 1f)
 
-        val navBarGlassEnabled = prefs.getBoolean(KEY_NAVBAR_GLASS_ENABLED, false)
+        val navBarGlassEnabled = prefs.getBoolean(KEY_NAVBAR_GLASS_ENABLED, true)
         val prefsNavBarGlassBlurStrength = prefs.getFloat(KEY_NAVBAR_GLASS_BLUR_STRENGTH, 0.7f)
         val prefsNavBarGlassTransparency = prefs.getFloat(KEY_NAVBAR_GLASS_TRANSPARENCY, 0.6f)
         val prefsNavBarGlassHighlightStrength = prefs.getFloat(KEY_NAVBAR_GLASS_HIGHLIGHT_STRENGTH, 0.5f)
         val navBarGlassSpecularEnabled = prefs.getBoolean(KEY_NAVBAR_GLASS_SPECULAR_ENABLED, true)
         val navBarGlassInnerGlowEnabled = prefs.getBoolean(KEY_NAVBAR_GLASS_INNER_GLOW_ENABLED, true)
         val navBarGlassBorderEnabled = prefs.getBoolean(KEY_NAVBAR_GLASS_BORDER_ENABLED, true)
+
+        val cardOpacityPref = prefs.getFloat(KEY_CARD_OPACITY, 1f)
+        val cardGlassAlphaPref = prefs.getFloat(KEY_CARD_GLASS_ALPHA, 0.35f)
+        val cardCornerRadiusPref = prefs.getFloat(KEY_CARD_CORNER_RADIUS, 28f)
+        val cardBorderEnabledPref = prefs.getBoolean(KEY_CARD_BORDER_ENABLED, false)
+        val cardBorderColorPref = prefs.getLong(KEY_CARD_BORDER_COLOR, 0xFFFFFFFF)
+        val cardShadowEnabledPref = prefs.getBoolean(KEY_CARD_SHADOW_ENABLED, false)
+        val cardShadowElevationPref = prefs.getFloat(KEY_CARD_SHADOW_ELEVATION, 0f)
+        val cardPaddingScalePref = prefs.getFloat(KEY_CARD_PADDING_SCALE, 1f)
+        val animationPresetPref = prefs.getInt(KEY_ANIMATION_PRESET, 4)
         
         Log.d(TAG, "加载背景配置: URI=$uri, enabled=$enabled, opacity=$opacity, dim=$dim")
         
@@ -929,6 +1017,16 @@ object BackgroundConfig {
         isNavBarGlassSpecularEnabled = navBarGlassSpecularEnabled
         isNavBarGlassInnerGlowEnabled = navBarGlassInnerGlowEnabled
         isNavBarGlassBorderEnabled = navBarGlassBorderEnabled
+
+        cardOpacity = cardOpacityPref
+        cardGlassAlpha = cardGlassAlphaPref
+        cardCornerRadius = cardCornerRadiusPref
+        cardBorderEnabled = cardBorderEnabledPref
+        cardBorderColor = cardBorderColorPref
+        cardShadowEnabled = cardShadowEnabledPref
+        cardShadowElevation = cardShadowElevationPref
+        cardPaddingScale = cardPaddingScalePref
+        animationPreset = animationPresetPref
     }
     
     /**
@@ -1010,13 +1108,23 @@ object BackgroundConfig {
         dashboardCardBgDayOpacity = 1f
         dashboardCardBgNightOpacity = 1f
 
-        isNavBarGlassEnabled = false
+        isNavBarGlassEnabled = true
         navBarGlassBlurStrength = 0.7f
         navBarGlassTransparency = 0.6f
         navBarGlassHighlightStrength = 0.5f
         isNavBarGlassSpecularEnabled = true
         isNavBarGlassInnerGlowEnabled = true
         isNavBarGlassBorderEnabled = true
+
+        cardOpacity = 1f
+        cardGlassAlpha = 0.35f
+        cardCornerRadius = 28f
+        cardBorderEnabled = false
+        cardBorderColor = 0xFFFFFFFF
+        cardShadowEnabled = false
+        cardShadowElevation = 0f
+        cardPaddingScale = 1f
+        animationPreset = 4
     }
 }
 

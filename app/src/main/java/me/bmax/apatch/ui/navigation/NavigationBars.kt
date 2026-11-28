@@ -33,7 +33,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailDefaults
@@ -215,11 +214,11 @@ fun BottomBar(
             }
         }
 
-        val containerColor = if (BackgroundConfig.isCustomBackgroundEnabled) {
-            MaterialTheme.colorScheme.surface.copy(alpha = BackgroundConfig.customBackgroundOpacity)
-        } else {
-            NavigationBarDefaults.containerColor
-        }
+        // Bottom bar keeps its frosted look in every state: it follows the
+        // global card-glass alpha instead of snapping to a solid container
+        // color when the glass switch or wallpaper state is off.
+        val containerColor = MaterialTheme.colorScheme.surfaceContainer
+            .copy(alpha = BackgroundConfig.cardGlassAlpha)
 
         if (isFloating) {
             BoxWithConstraints(

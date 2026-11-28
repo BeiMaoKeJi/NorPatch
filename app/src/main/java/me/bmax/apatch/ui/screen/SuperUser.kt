@@ -1,16 +1,22 @@
 package me.bmax.apatch.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,8 +29,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -38,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,6 +59,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import kotlinx.coroutines.launch
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.GlassCard
 import me.bmax.apatch.ui.component.ProvideMenuShape
 import me.bmax.apatch.ui.component.SearchAppBar
 import me.bmax.apatch.ui.component.SwitchItem
@@ -156,33 +163,46 @@ private fun AppItem(
     var showEditProfile by remember { mutableStateOf(false) }
     val rootGranted = config.allow != 0
     val excluded = config.exclude == 1
+    val pending = viewModel.isPending(app.uid)
 
-    ListItem(
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clickable(onClick = {
+    GlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 5.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        onClick = {
             // Tapping the row only toggles the profile editor; granting or
             // revoking root goes through the Switch alone so a stray tap can
             // never strip an app's root access.
             showEditProfile = !showEditProfile
-        }),
-        headlineContent = { Text(app.label) },
-        leadingContent = {
+        },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(app.packageInfo)
                     .crossfade(true).build(),
                 contentDescription = app.label,
                 modifier = Modifier
                     .padding(4.dp)
-                    .width(48.dp)
-                    .height(48.dp)
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp)),
             )
-        },
-        supportingContent = {
-
-            Column {
-                Text(app.packageName)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = app.label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = app.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 FlowRow {
-
                     if (excluded) {
                         LabelText(label = stringResource(id = R.string.su_pkg_excluded_label))
                     }
@@ -199,29 +219,30 @@ private fun AppItem(
                     }
                 }
             }
-        },
-        trailingContent = {
-            Switch(checked = rootGranted, onCheckedChange = {
-                viewModel.setRootGranted(app, it)
-            })
-        },
-    )
+            Switch(
+                checked = rootGranted,
+                onCheckedChange = {
+                    viewModel.setRootGranted(app, it)
+                },
+                enabled = !pending,
+            )
+        }
 
-    AnimatedVisibility(
-        visible = showEditProfile && !rootGranted,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-    ) {
-        SwitchItem(
-            icon = Icons.Filled.Security,
-            title = stringResource(id = R.string.su_pkg_excluded_setting_title),
-            summary = stringResource(id = R.string.su_pkg_excluded_setting_summary),
-            checked = excluded,
-            onCheckedChange = {
-                viewModel.setExcluded(app, it)
-            },
-        )
+        AnimatedVisibility(
+            visible = showEditProfile && !rootGranted,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            SwitchItem(
+                icon = Icons.Filled.Security,
+                title = stringResource(id = R.string.su_pkg_excluded_setting_title),
+                summary = stringResource(id = R.string.su_pkg_excluded_setting_summary),
+                checked = excluded,
+                onCheckedChange = {
+                    viewModel.setExcluded(app, it)
+                },
+            )
+        }
     }
 }
 

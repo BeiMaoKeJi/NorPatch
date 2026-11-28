@@ -368,10 +368,16 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                 .verticalScroll(rememberScrollState()),
         ) {
             Spacer(Modifier.height(4.dp))
-            SectionCard(stringResource(R.string.settings_group_general)) {
+            SectionCard(stringResource(R.string.settings_section_appearance)) {
                 var first = true
                 @Composable
                 fun divider() {
+                    // Skip the divider before the very first item so the card
+                    // doesn't show a stray line right under its title.
+                    if (first) {
+                        first = false
+                        return
+                    }
                     androidx.compose.material3.HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                     )
@@ -436,7 +442,26 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
 
                     if (!useSystemDynamicColor) {
                         divider()
-                        ListItem(headlineContent = {
+                        ListItem(
+                            colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                            headlineContent = {
+                                Text(text = stringResource(id = R.string.settings_custom_color_theme))
+                            }, modifier = Modifier.clickable {
+                                showThemeChooseDialog.value = true
+                            }, supportingContent = {
+                                val colorMode = prefs.getString("custom_color", "norpatch")
+                                Text(
+                                    text = stringResource(colorNameToString(colorMode.toString())),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
+                    }
+                } else {
+                    divider()
+                    ListItem(
+                        colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        headlineContent = {
                             Text(text = stringResource(id = R.string.settings_custom_color_theme))
                         }, modifier = Modifier.clickable {
                             showThemeChooseDialog.value = true
@@ -445,24 +470,9 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                             Text(
                                 text = stringResource(colorNameToString(colorMode.toString())),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.outline
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-                    }
-                } else {
-                    divider()
-                    ListItem(headlineContent = {
-                        Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                    }, modifier = Modifier.clickable {
-                        showThemeChooseDialog.value = true
-                    }, supportingContent = {
-                        val colorMode = prefs.getString("custom_color", "norpatch")
-                        Text(
-                            text = stringResource(colorNameToString(colorMode.toString())),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
                 }
 
                 // NorPatch: Home Appearance entry
@@ -476,9 +486,24 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                         navigator.navigate(HomeAppearanceScreenDestination)
                     })
 
+            }
+
+            SectionCard(stringResource(R.string.settings_section_system)) {
+                var first2 = true
+                @Composable
+                fun divider2() {
+                    if (first2) {
+                        first2 = false
+                        return
+                    }
+                    androidx.compose.material3.HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    )
+                }
+
                 // su path
                 if (kPatchReady) {
-                    divider()
+                    divider2()
                     ListItem(
                 colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         leadingContent = {
@@ -486,7 +511,6 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                                 Icons.Filled.Commit, stringResource(id = R.string.setting_reset_su_path)
                             )
                         },
-                        supportingContent = {},
                         headlineContent = { Text(stringResource(id = R.string.setting_reset_su_path)) },
                         modifier = Modifier.clickable {
                             showResetSuPathDialog.value = true
@@ -494,23 +518,25 @@ fun GeneralScreen(navigator: DestinationsNavigator) {
                 }
 
                 // language
-                divider()
-                ListItem(headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_app_language))
-                }, modifier = Modifier.clickable {
-                    showLanguageDialog.value = true
-                }, supportingContent = {
-                    Text(text = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(
-                            Locale.getDefault()
-                        ) else it.toString()
-                    } ?: stringResource(id = R.string.system_default),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline)
-                }, leadingContent = { Icon(Icons.Filled.Translate, null) })
+                divider2()
+                ListItem(
+                    colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    headlineContent = {
+                        Text(text = stringResource(id = R.string.settings_app_language))
+                    }, modifier = Modifier.clickable {
+                        showLanguageDialog.value = true
+                    }, supportingContent = {
+                        Text(text = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.getDefault()
+                            ) else it.toString()
+                        } ?: stringResource(id = R.string.system_default),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }, leadingContent = { Icon(Icons.Filled.Translate, null) })
 
                 // log
-                divider()
+                divider2()
                 ListItem(
                 colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                     leadingContent = {

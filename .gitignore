@@ -16,3 +16,10 @@ private
 norpatch.jks
 norpatch.keystore
 local.properties
+
+# build artifacts (local only)
+*.apk
+*.aab
+# build logs
+log-*.txt
+

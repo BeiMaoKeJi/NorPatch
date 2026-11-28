@@ -205,8 +205,8 @@
     <string name="settings_night_mode_follow_sys">深色模式跟随系统</string>
     <string name="settings_night_mode_follow_sys_summary">根据系统的深色模式自动切换</string>
     <string name="settings_night_theme_enabled">深色主题</string>
-    <string name="settings_use_system_color_theme">系统颜色主题</string>
-    <string name="settings_use_system_color_theme_summary">使用由系统由壁纸取色生成的主题</string>
+    <string name="settings_use_system_color_theme">莫奈取色</string>
+    <string name="settings_use_system_color_theme_summary">Material You 动态取色，从壁纸提取主题色</string>
     <string name="settings_custom_color_theme">颜色主题</string>
     <string name="amber_theme">琥珀色主题</string>
     <string name="blue_theme">蓝色主题</string>
@@ -227,13 +227,13 @@
     <string name="sakura_theme">樱花色主题</string>
     <string name="teal_theme">青绿色主题</string>
     <string name="yellow_theme">黄色主题</string>
-    <string name="about_app_version">版本 %1$s</string>
+    <string name="about_app_version">NorPatch版本：%1$s</string>
     <string name="about_app_desc">内核级 ROOT 解决方案且无需重新编译内核，同时提供挂载系统模块和 Hook 内核函数的能力。</string>
     <string name="about_github" translatable="false">GitHub</string>
     <string name="about_weblate" translatable="false">Weblate</string>
     <string name="about_telegram_channel">Telegram 频道</string>
     <string name="about_telegram_group">Telegram 群组</string>
-    <string name="about_powered_by">由 %1$s 强力驱动</string>
+    <string name="about_powered_by">由%1$s强力驱动</string>
     <string name="apm_action">执行</string>
     <string name="crash_handle_title">应用崩溃了…</string>
     <string name="crash_handle_copy">复制崩溃日志</string>
@@ -266,6 +266,7 @@
     <string name="home_greeting_afternoon">下午好</string>
     <string name="home_greeting_night">晚上好</string>
 
+    <string name="home_appearance_section_background">全局背景</string>
     <string name="home_bg_enabled">背景图</string>
     <string name="home_bg_enabled_summary">使用自定义图片作为全局背景</string>
     <string name="home_bg_pick">选择图片</string>
@@ -283,7 +284,7 @@
     <string name="norpatch_theme">NorPatch</string>
     <string name="close">关闭</string>
     <string name="home_about_norpatch_title">NorPatch (nP)</string>
-    <string name="home_about_norpatch_desc">基于APatch二次改版。内置三套UI：一套为本项目自研界面，另外两套分别为FolkPatch原版界面、原版APatch界面；仅替换前端UI，底层核心引擎完全保留原版APatch。</string>
+    <string name="home_about_norpatch_desc">基于 APatch 二次修改的分支，底层 KernelPatch 保持与上游一致。内置自研 CardLite 及参照 FolkPatch（Dashboard / Gridu）的三套布局。\n本项目仅对 UI 等前端显示做了修改，部分组件直接复用了现有开源项目（如浮动导航栏等）。</string>
     <string name="home_community_title">加入社群</string>
     <string name="home_community_entry">加入社群入口</string>
     <string name="home_community_entry_summary">控制【更多】页面中的加入社群区块显示</string>
@@ -373,6 +374,8 @@
     <string name="home_device_storage">存储空间</string>
     <string name="settings_group_features">系统功能</string>
     <string name="settings_group_general">通用设置</string>
+    <string name="settings_section_appearance">外观</string>
+    <string name="settings_section_system">系统</string>
     <string name="settings_home_layout_style">首页布局</string>
     <string name="home_layout_ap">AP 默认布局</string>
     <string name="home_layout_gridul">FolkPatch Gridu UI</string>
@@ -404,4 +407,26 @@
     <string name="home_appearance_grid_hide_text">隐藏状态文字</string>
     <string name="home_appearance_grid_hide_mode">隐藏 Full/Half 模式</string>
     <string name="home_about_card_show">在首页显示此卡片</string>
-    <string name="home_card_opacity">卡片透明度</string></resources>
+    <string name="home_appearance_section_card">卡片外观</string>
+    <string name="home_card_glass_alpha">卡片毛玻璃透明度</string>
+    <string name="home_card_opacity">卡片整体透明度</string>
+    <string name="home_card_corner">卡片圆角</string>
+    <string name="home_card_border">卡片边框</string>
+    <string name="home_card_border_summary">为所有卡片添加高亮描边</string>
+    <string name="home_card_shadow">卡片阴影</string>
+    <string name="home_card_shadow_summary">为所有卡片添加柔和阴影</string>
+    <string name="home_card_padding">卡片内边距</string>
+    <string name="home_appearance_reset_all">一键重置所有外观</string>
+    <string name="home_appearance_menu_blocks_summary">显示/隐藏首页区块与社区入口</string>
+    <string name="home_appearance_menu_background_summary">壁纸、透明度、模糊与变暗</string>
+    <string name="home_appearance_menu_card_summary">毛玻璃、圆角、边框、阴影与内边距</string>
+    <string name="home_appearance_menu_animation_summary">卡片进入动画预设</string>
+    <string name="home_appearance_menu_grid_card_summary">Gridu 布局工作卡壁纸与显示项</string>
+    <string name="home_appearance_menu_dashboard_card_summary">Dashboard 布局英雄卡壁纸</string>
+    <string name="home_animation_preset">动画效果</string>
+    <string name="home_animation_none">无动画</string>
+    <string name="home_animation_fade">淡入</string>
+    <string name="home_animation_scale">缩放</string>
+    <string name="home_animation_slide">上滑</string>
+    <string name="home_animation_spring">弹性</string>
+</resources>

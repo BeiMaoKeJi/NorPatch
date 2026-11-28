@@ -176,6 +176,9 @@ fun APatchTheme(
     // translucent so the full-screen wallpaper shows through the cards.
     val useCustomBackground = BackgroundConfig.isCustomBackgroundEnabled &&
         !BackgroundConfig.customBackgroundUri.isNullOrEmpty()
+    // Cards stay frosted-glass translucent regardless of wallpaper state, so a
+    // layout switch or app restart can never collapse them into a solid slab.
+    val glassAlpha = BackgroundConfig.cardGlassAlpha
     val effectiveColorScheme = if (useCustomBackground) {
         colorScheme.copy(
             background = Color.Transparent,
@@ -183,15 +186,14 @@ fun APatchTheme(
             secondaryContainer = colorScheme.secondaryContainer.copy(
                 alpha = BackgroundConfig.customBackgroundOpacity,
             ),
-            surfaceContainer = colorScheme.surfaceContainer.copy(
-                alpha = BackgroundConfig.customBackgroundOpacity,
-            ),
-            surfaceContainerHigh = colorScheme.surfaceContainerHigh.copy(
-                alpha = BackgroundConfig.customBackgroundOpacity,
-            ),
+            surfaceContainer = colorScheme.surfaceContainer.copy(alpha = glassAlpha),
+            surfaceContainerHigh = colorScheme.surfaceContainerHigh.copy(alpha = glassAlpha),
         )
     } else {
-        colorScheme
+        colorScheme.copy(
+            surfaceContainer = colorScheme.surfaceContainer.copy(alpha = glassAlpha),
+            surfaceContainerHigh = colorScheme.surfaceContainerHigh.copy(alpha = glassAlpha),
+        )
     }
 
     MaterialTheme(

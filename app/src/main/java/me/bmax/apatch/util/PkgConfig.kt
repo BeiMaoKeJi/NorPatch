@@ -5,11 +5,12 @@ import android.util.Log
 import androidx.annotation.Keep
 import androidx.compose.runtime.Immutable
 import kotlinx.parcelize.Parcelize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
 import java.io.File
 import java.io.FileWriter
-import kotlin.concurrent.thread
 
 object PkgConfig {
     private const val TAG = "PkgConfig"
@@ -79,8 +80,13 @@ object PkgConfig {
         writer.close()
     }
 
-    fun changeConfig(config: Config) {
-        thread {
+    /**
+     * Persists a single package's config, then applies the grant/exclude side
+     * effects in a defined order. Runs off the main thread and suspends until
+     * the write completes, so callers can sequence it before grant/revoke.
+     */
+    suspend fun changeConfig(config: Config) {
+        withContext(Dispatchers.IO) {
             synchronized(PkgConfig.javaClass) {
                 Natives.su()
                 val configs = readConfigs()

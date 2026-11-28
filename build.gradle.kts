@@ -49,7 +49,14 @@ fun getBranch(): String {
 }
 
 fun getVersionName(): String {
-    return "0.1.23"
+    // NorPatch version scheme: "3.0.X".
+    // X is read from version.properties (managerVersionPatch) and bumped by one
+    // on every release: 3.0.0 -> 3.0.1 -> 3.0.2 -> ...
+    val props = java.util.Properties().apply {
+        File(rootDir, "version.properties").inputStream().use { load(it) }
+    }
+    val patch = props.getProperty("managerVersionPatch")?.toIntOrNull() ?: 0
+    return "3.0.$patch"
 }
 
 tasks.register("printVersion") {

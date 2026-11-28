@@ -2,12 +2,24 @@ package me.bmax.apatch.ui.component
 import me.bmax.apatch.ui.theme.BackgroundConfig
 
 import android.os.Build
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,6 +29,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,6 +63,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -74,6 +89,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import coil3.compose.AsyncImage
@@ -562,6 +578,63 @@ object GlassShapes {
 }
 
 // ---------------------------------------------------------------------------
+// Global animation presets
+// ---------------------------------------------------------------------------
+
+/**
+ * Five selectable global animation presets. Every card, list item and the
+ * press feedback share the same preset so the whole app moves with one smooth,
+ * coherent motion language that the user can customize from Settings.
+ *
+ *  0 = none, 1 = fade, 2 = scale, 3 = slide up, 4 = spring (bouncy)
+ */
+object CardAnimations {
+    const val PRESET_NONE = 0
+    const val PRESET_FADE = 1
+    const val PRESET_SCALE = 2
+    const val PRESET_SLIDE_UP = 3
+    const val PRESET_SPRING = 4
+
+    /** Press-scale animation spec for clickable cards, selected by preset. */
+    fun pressScaleSpec(): FiniteAnimationSpec<Float> = when (BackgroundConfig.animationPreset) {
+        PRESET_NONE -> tween(0)
+        PRESET_FADE -> tween(180, easing = FastOutSlowInEasing)
+        PRESET_SCALE -> tween(220, easing = FastOutSlowInEasing)
+        PRESET_SLIDE_UP -> tween(240, easing = FastOutSlowInEasing)
+        else -> spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        )
+    }
+
+    /** Entrance transition for cards / list items, selected by preset. */
+    fun enterTransition(): EnterTransition = when (BackgroundConfig.animationPreset) {
+        PRESET_NONE -> EnterTransition.None
+        PRESET_FADE -> fadeIn(tween(220, easing = FastOutSlowInEasing))
+        PRESET_SCALE -> scaleIn(tween(240, easing = FastOutSlowInEasing), initialScale = 0.92f)
+        PRESET_SLIDE_UP -> slideInVertically(tween(260, easing = FastOutSlowInEasing)) { it / 8 } +
+            fadeIn(tween(220, easing = FastOutSlowInEasing))
+        else -> scaleIn(
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+            initialScale = 0.9f,
+        ) + fadeIn(tween(160))
+    }
+
+    /** Exit transition for cards / list items, selected by preset. */
+    fun exitTransition(): ExitTransition = when (BackgroundConfig.animationPreset) {
+        PRESET_NONE -> ExitTransition.None
+        PRESET_FADE -> fadeOut(tween(160))
+        PRESET_SCALE -> scaleOut(tween(160, easing = FastOutSlowInEasing), targetScale = 0.92f)
+        PRESET_SLIDE_UP -> slideOutVertically(tween(200, easing = FastOutSlowInEasing)) { it / 8 } +
+            fadeOut(tween(160))
+        else -> scaleOut(
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+            targetScale = 0.9f,
+        ) + fadeOut(tween(120))
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Frosted-glass card
 // ---------------------------------------------------------------------------
 
@@ -573,26 +646,25 @@ object GlassShapes {
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    shape: Shape = GlassShapes.Card,
-    fillAlpha: Float = 0.78f,
+    shape: Shape? = null,
     contentPadding: PaddingValues = PaddingValues(20.dp),
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val frostedAlpha = if (BackgroundConfig.isCustomBackgroundEnabled) {
-        BackgroundConfig.customBackgroundOpacity.coerceIn(0.5f, 0.8f)
-    } else {
-        1f
-    }
-    val base = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = frostedAlpha)
+    // Cards stay frosted (translucent) regardless of wallpaper state, so a
+    // layout switch or app restart can never turn them into a solid slab.
+    // The background alpha follows the global card-glass setting.
+    val glassAlpha = BackgroundConfig.cardGlassAlpha
+    // Unified global card style: corner radius + optional border come from
+    // BackgroundConfig so every card (home / settings / superuser / lists)
+    // shares the same glass look and stays in sync when the user tweaks it.
+    val effectiveShape = shape ?: RoundedCornerShape(BackgroundConfig.cardCornerRadius.dp)
+    val base = MaterialTheme.colorScheme.surfaceContainer
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = CardAnimations.pressScaleSpec(),
         label = "glassPressScale",
     )
 
@@ -601,14 +673,28 @@ fun GlassCard(
             scaleX = scale
             scaleY = scale
         }
-        .clip(shape)
+        .then(
+            if (BackgroundConfig.cardShadowEnabled) {
+                Modifier.shadow(BackgroundConfig.cardShadowElevation.dp, effectiveShape)
+            } else {
+                Modifier
+            }
+        )
+        .clip(effectiveShape)
         .background(
             Brush.verticalGradient(
                 colors = listOf(
-                    base.copy(alpha = (fillAlpha + 0.08f).coerceIn(0f, 1f)),
-                    base.copy(alpha = fillAlpha),
+                    base.copy(alpha = (glassAlpha + 0.08f).coerceIn(0f, 1f)),
+                    base.copy(alpha = glassAlpha),
                 )
             )
+        )
+        .then(
+            if (BackgroundConfig.cardBorderEnabled) {
+                Modifier.border(1.dp, globalCardBorderColor(), effectiveShape)
+            } else {
+                Modifier
+            }
         )
         .then(
             if (onClick != null) {
@@ -622,13 +708,29 @@ fun GlassCard(
             }
         )
 
+    val density = BackgroundConfig.cardPaddingScale
+    val scaledContentPadding = Modifier.padding(
+        start = contentPadding.calculateStartPadding(LayoutDirection.Ltr) * density,
+        top = contentPadding.calculateTopPadding() * density,
+        end = contentPadding.calculateEndPadding(LayoutDirection.Ltr) * density,
+        bottom = contentPadding.calculateBottomPadding() * density,
+    )
+
     Box(
         modifier = cardModifier.graphicsLayer {
             alpha = BackgroundConfig.cardOpacity
         },
     ) {
+        var contentVisible by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { contentVisible = true }
         androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-            Column(modifier = Modifier.padding(contentPadding)) { content() }
+            AnimatedVisibility(
+                visible = contentVisible,
+                enter = CardAnimations.enterTransition(),
+                exit = CardAnimations.exitTransition(),
+            ) {
+                Column(modifier = scaledContentPadding) { content() }
+            }
         }
     }
 }
@@ -728,7 +830,7 @@ fun HomeBackgroundImage(modifier: Modifier = Modifier) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color.White.copy(alpha = (1f - animatedAlpha) * 0.65f))
+                    .background(Color.White.copy(alpha = (1f - animatedAlpha) * 0.5f))
             )
             // Layer 3: optional dim layer for readability.
             if (animatedDim > 0.01f) {
@@ -781,12 +883,26 @@ fun BlockBackground(block: HomeBlock, modifier: Modifier = Modifier) {
     when (HomePrefs.blockBgType[block] ?: BlockBgType.SOLID) {
         BlockBgType.IMAGE -> {
             val file = HomePrefs.blockFile(block)
+            val frostedAlpha = BackgroundConfig.cardGlassAlpha
             if (file != null) {
                 // Overscan + crop: keeps the blurred image edge (dark halo)
                 // outside the visible block area, so rounded corners stay clean.
                 Box(
                     modifier.clipToBounds()
                 ) {
+                    // White veil base: an image background must still read as
+                    // frosted glass (never as an opaque slab), so layer the
+                    // semi-transparent surface color under the image and force
+                    // the image itself to the global glass alpha. This keeps
+                    // every block visually consistent regardless of load order.
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .background(
+                                MaterialTheme.colorScheme.surfaceContainer
+                                    .copy(alpha = frostedAlpha)
+                            )
+                    )
                     Box(
                         Modifier
                             .matchParentSize()
@@ -805,13 +921,16 @@ fun BlockBackground(block: HomeBlock, modifier: Modifier = Modifier) {
                                         Modifier
                                     }
                                 )
-                                .alpha(alpha),
+                                .alpha(alpha * frostedAlpha),
                         )
                     }
                 }
             } else {
                 Box(
-                    modifier.background(Color(0xFFFFFFFF))
+                    modifier.background(
+                        MaterialTheme.colorScheme.surfaceContainer
+                            .copy(alpha = BackgroundConfig.cardGlassAlpha)
+                    )
                 )
             }
         }
@@ -819,14 +938,10 @@ fun BlockBackground(block: HomeBlock, modifier: Modifier = Modifier) {
         BlockBgType.SOLID -> {
             // Frosted-glass feel over custom backgrounds: semi-opaque white lets the
             // (already blurred) custom background show through instead of a flat slab.
-            // Unified frosted glass across every screen: driven by the single global
-            // background-opacity slider so tweaking it morphs home cards and all
-            // other pages (settings/superuser/module lists) together.
-            val frostedAlpha = if (BackgroundConfig.isCustomBackgroundEnabled) {
-                BackgroundConfig.customBackgroundOpacity.coerceIn(0.5f, 0.8f)
-            } else {
-                alpha
-            }
+            // Unified frosted glass across every screen: driven by the global
+            // card-glass alpha so a layout switch or app restart never turns a card
+            // into a solid (orange-looking) slab.
+            val frostedAlpha = BackgroundConfig.cardGlassAlpha
             Box(
                 modifier.background(
                     MaterialTheme.colorScheme.surfaceContainer
@@ -855,12 +970,32 @@ fun BlockCard(
 ) {
     HomePrefs.ensureInit()
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val corner = HomePrefs.blockCornerDp(block)
-    val shape = RoundedCornerShape(corner)
-    val borderEnabled = HomePrefs.blockBorderEnabled[block] ?: HomePrefs.DEFAULT_BLOCK_BORDER
-    val borderColor = Color(HomePrefs.blockBorderColor[block] ?: HomePrefs.DEFAULT_BLOCK_BORDER_COLOR)
-    val shadowEnabled = HomePrefs.blockShadowEnabled[block] ?: HomePrefs.DEFAULT_BLOCK_SHADOW
-    val shadowStrength = (HomePrefs.blockShadowStrength[block] ?: HomePrefs.DEFAULT_BLOCK_SHADOW_STRENGTH).dp
+    // Unified global card style: corner / border / shadow / padding follow the
+    // global "card appearance" settings (same source as GlassCard), so the
+    // home blocks react to them immediately. Per-block values only win when
+    // they were explicitly customized away from the defaults.
+    val blockCorner = HomePrefs.blockCorner[block] ?: HomePrefs.DEFAULT_BLOCK_CORNER
+    val corner = if (blockCorner != HomePrefs.DEFAULT_BLOCK_CORNER) {
+        blockCorner
+    } else {
+        BackgroundConfig.cardCornerRadius
+    }
+    val shape = RoundedCornerShape(corner.dp)
+    val blockBorder = HomePrefs.blockBorderEnabled[block] ?: HomePrefs.DEFAULT_BLOCK_BORDER
+    val borderEnabled = BackgroundConfig.cardBorderEnabled || blockBorder
+    val borderColor = if (blockBorder) {
+        val c = HomePrefs.blockBorderColor[block] ?: HomePrefs.DEFAULT_BLOCK_BORDER_COLOR
+        if (c == 0xFFFFFFFFL) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else Color(c)
+    } else {
+        globalCardBorderColor()
+    }
+    val blockShadow = HomePrefs.blockShadowEnabled[block] ?: HomePrefs.DEFAULT_BLOCK_SHADOW
+    val shadowEnabled = BackgroundConfig.cardShadowEnabled || blockShadow
+    val shadowStrength = if (blockShadow) {
+        (HomePrefs.blockShadowStrength[block] ?: HomePrefs.DEFAULT_BLOCK_SHADOW_STRENGTH).dp
+    } else {
+        BackgroundConfig.cardShadowElevation.dp
+    }
 
     val cardModifier = modifier
         .then(if (shadowEnabled) Modifier.shadow(shadowStrength, shape, clip = false) else Modifier)
@@ -873,7 +1008,14 @@ fun BlockCard(
         },
     ) {
         BlockBackground(block, Modifier.matchParentSize())
-        Column(Modifier.padding(contentPadding)) {
+        val density = BackgroundConfig.cardPaddingScale
+        val scaledPadding = Modifier.padding(
+            start = contentPadding.calculateStartPadding(LayoutDirection.Ltr) * density,
+            top = contentPadding.calculateTopPadding() * density,
+            end = contentPadding.calculateEndPadding(LayoutDirection.Ltr) * density,
+            bottom = contentPadding.calculateBottomPadding() * density,
+        )
+        Column(scaledPadding) {
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface
             ) {
@@ -897,6 +1039,43 @@ fun blockTitleRes(block: HomeBlock): Int = when (block) {
     HomeBlock.CUSTOM -> R.string.home_block_custom
     HomeBlock.DEVICE -> R.string.home_block_device
 }
+
+// ---------------------------------------------------------------------------
+// Global card style helpers: the grid/dashboard layouts render plain M3 Card
+// containers, so they must consume the same global "card appearance" settings
+// (corner / border / shadow) as BlockCard and GlassCard.
+// ---------------------------------------------------------------------------
+
+/** Global corner radius for M3 Card containers. */
+fun globalCardShape(): RoundedCornerShape = RoundedCornerShape(BackgroundConfig.cardCornerRadius.dp)
+
+/**
+ * Global border color. The stored default (pure white) is treated as "auto":
+ * it follows the theme outline color, which stays visible on both light and
+ * dark card backgrounds (a white border is invisible on a light card).
+ */
+@Composable
+fun globalCardBorderColor(): Color {
+    val stored = BackgroundConfig.cardBorderColor
+    return if (stored == 0xFFFFFFFFL) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
+    } else {
+        Color(stored)
+    }
+}
+
+/** Global 1dp border for M3 Card containers; null when disabled. */
+@Composable
+fun globalCardBorder(): BorderStroke? =
+    if (BackgroundConfig.cardBorderEnabled) {
+        BorderStroke(1.dp, globalCardBorderColor())
+    } else {
+        null
+    }
+
+/** Global shadow elevation for M3 Card containers; 0.dp when disabled. */
+fun globalCardElevation(): Dp =
+    if (BackgroundConfig.cardShadowEnabled) BackgroundConfig.cardShadowElevation.dp else 0.dp
 
 /** Unified window title bar: name (left) + settings gear (right), fixed height. */
 @Composable
@@ -1212,7 +1391,7 @@ fun SectionCard(
             )
         }
         Spacer(Modifier.height(8.dp))
-        GlassCard(fillAlpha = 0.80f) {
+        GlassCard {
             Column { content() }
         }
     }

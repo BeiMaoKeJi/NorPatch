@@ -95,6 +95,9 @@ import coil3.request.crossfade
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.copyableInfo
+import me.bmax.apatch.ui.component.globalCardBorder
+import me.bmax.apatch.ui.component.globalCardElevation
+import me.bmax.apatch.ui.component.globalCardShape
 import me.bmax.apatch.Natives
 import me.bmax.apatch.util.SystemInfoCollector
 import me.bmax.apatch.util.getSELinuxStatus
@@ -228,7 +231,9 @@ private fun HeroStatusCardV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 160.dp),
-            shape = RoundedCornerShape(24.dp),
+            shape = globalCardShape(),
+            border = globalCardBorder(),
+            elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
             colors = CardDefaults.cardColors(
                 containerColor = Color.Transparent,
                 contentColor = contentColor,
@@ -341,7 +346,9 @@ private fun HeroStatusCardV4(
                 .clickable {
                     navigator.navigate(InstallModeSelectScreenDestination)
                 },
-            shape = RoundedCornerShape(20.dp),
+            shape = globalCardShape(),
+            border = globalCardBorder(),
+            elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -398,7 +405,9 @@ private fun HeroStatusCardV4(
 private fun AndroidPatchCardV4(apState: APApplication.State) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = globalCardShape(),
+        border = globalCardBorder(),
+        elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
@@ -614,7 +623,7 @@ private fun DeviceStatusCardV4() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 StatusCircleV4(
-                    value = "${deviceStatus.batteryTemp}閹虹煰",
+                    value = "${deviceStatus.batteryTemp}°C",
                     label = stringResource(R.string.home_device_status_battery_temp),
                     progress = (deviceStatus.batteryTemp / 50f).coerceIn(0f, 1f),
                     color = MaterialTheme.colorScheme.primary,
@@ -829,7 +838,9 @@ private fun TonalCardV4(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = globalCardShape(),
+        border = globalCardBorder(),
+        elevation = CardDefaults.cardElevation(defaultElevation = globalCardElevation()),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
