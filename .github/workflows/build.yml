@@ -48,7 +48,7 @@ jobs:
       # gets rate-limited (HTTP 403 "API rate limit exceeded"), failing the job
       # in ~14s before Gradle even starts. Adoptium uses its own API instead.
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
