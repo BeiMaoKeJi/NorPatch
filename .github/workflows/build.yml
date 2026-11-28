@@ -43,11 +43,16 @@ jobs:
           echo "Generated Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+      # Pin the JDK to Adoptium (Temurin): the "jetbrains" distribution resolves
+      # its release list through the GitHub REST API, and on shared runners that
+      # gets rate-limited (HTTP 403 "API rate limit exceeded"), failing the job
+      # in ~14s before Gradle even starts. Adoptium uses its own API instead.
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: jetbrains
-          java-version: 21
+          distribution: temurin
+          java-version: '21'
+          check-latest: false
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
